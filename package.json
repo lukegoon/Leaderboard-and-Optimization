@@ -1,0 +1,6 @@
+{
+  "name": "recruiter-dashboard",
+  "scripts": {
+    "start": "npx serve . -p $PORT"
+  }
+}

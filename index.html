@@ -1,0 +1,2937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruiter Intelligence Dashboard — Week of 3/2</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --bg2: #0a0f1e;
+    --bg3: #0f1628;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8edf5;
+    --text2: #8a9bb8;
+    --text3: #4a5a72;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --gold: #f5c542;
+    --green: #00e5a0;
+    --red: #ff4757;
+    --orange: #ff8c42;
+    --pink: #ff6b9d;
+    --glow: 0 0 40px rgba(0,212,255,0.15);
+    --glow2: 0 0 30px rgba(124,58,237,0.2);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(0,212,255,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(124,58,237,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,229,160,0.02) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid noise texture */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1600px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 20px rgba(0,212,255,0.3);
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .header-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .week-badge {
+    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,58,237,0.1));
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .live-dot {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text2);
+  }
+
+  .live-dot::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    margin-bottom: 36px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15));
+    color: var(--text);
+    border: 1px solid rgba(0,212,255,0.2);
+  }
+
+  .tab-btn:hover:not(.active) {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* PAGES */
+  .page { display: none; animation: fadeIn 0.4s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* STAT CARDS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    right: 0; height: 2px;
+    background: var(--card-accent, linear-gradient(90deg, var(--accent), var(--accent2)));
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .stat-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-top: 8px;
+  }
+
+  .trend-up { background: rgba(0,229,160,0.1); color: var(--green); }
+  .trend-down { background: rgba(255,71,87,0.1); color: var(--red); }
+  .trend-neutral { background: rgba(138,155,184,0.1); color: var(--text2); }
+
+  /* SECTION HEADERS */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .section-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 100px;
+    letter-spacing: 1px;
+  }
+
+  /* LEADERBOARD TABLE */
+  .leaderboard-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .leaderboard-table th {
+    background: var(--surface2);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 400;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+
+  .leaderboard-table th:hover { color: var(--accent); }
+  .leaderboard-table th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  .leaderboard-table th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+
+  .leaderboard-table td {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .leaderboard-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .rank-cell {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    width: 50px;
+  }
+
+  .rank-1 { color: var(--gold); text-shadow: 0 0 10px rgba(245,197,66,0.4); }
+  .rank-2 { color: #c0c8d8; }
+  .rank-3 { color: #cd8a4a; }
+
+  .recruiter-name {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .score-bar-wrap { display: flex; align-items: center; gap: 10px; min-width: 140px; }
+
+  .score-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .score-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    min-width: 32px;
+    text-align: right;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .tag-elite { background: rgba(245,197,66,0.1); color: var(--gold); border: 1px solid rgba(245,197,66,0.2); }
+  .tag-good { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.2); }
+  .tag-avg { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .tag-watch { background: rgba(255,140,66,0.1); color: var(--orange); border: 1px solid rgba(255,140,66,0.2); }
+  .tag-low { background: rgba(255,71,87,0.1); color: var(--red); border: 1px solid rgba(255,71,87,0.2); }
+
+  /* INSIGHT CARDS */
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .insight-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .insight-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+
+  .insight-card.highlight {
+    border-color: rgba(0,212,255,0.25);
+    background: linear-gradient(135deg, rgba(0,212,255,0.04), var(--surface));
+  }
+
+  .insight-card.warning {
+    border-color: rgba(255,140,66,0.25);
+    background: linear-gradient(135deg, rgba(255,140,66,0.04), var(--surface));
+  }
+
+  .insight-card.danger {
+    border-color: rgba(255,71,87,0.2);
+    background: linear-gradient(135deg, rgba(255,71,87,0.04), var(--surface));
+  }
+
+  .insight-card.success {
+    border-color: rgba(0,229,160,0.2);
+    background: linear-gradient(135deg, rgba(0,229,160,0.04), var(--surface));
+  }
+
+  .insight-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .insight-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .insight-body {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .insight-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .insight-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.5px;
+  }
+
+  /* METRIC DETAIL PAGE */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
+  }
+
+  /* BAR CHART */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--text2);
+    min-width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+  }
+
+  .bar-outer {
+    flex: 1;
+    height: 28px;
+    background: var(--bg3);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-inner {
+    height: 100%;
+    border-radius: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    min-width: 40px;
+    white-space: nowrap;
+  }
+
+  .avg-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: rgba(245,197,66,0.6);
+    z-index: 2;
+  }
+
+  /* OPTIMIZER TIPS */
+  .optimizer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .optimizer-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px;
+    background: var(--bg3);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+
+  .optimizer-item:hover { border-color: var(--border2); }
+
+  .optimizer-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent);
+    min-width: 24px;
+    line-height: 1.8;
+  }
+
+  .optimizer-text {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .optimizer-text strong { color: var(--text); }
+
+  /* RADAR / SPIDER CHART */
+  .radar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* INDIVIDUAL RECRUITER PAGE */
+  .recruiter-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .recruiter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .recruiter-btn.active {
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15));
+    border-color: rgba(0,212,255,0.3);
+    color: var(--text);
+  }
+
+  .recruiter-btn:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+
+  .recruiter-btn .mini-avatar {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* METRIC GRID FOR INDIVIDUAL */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    position: relative;
+  }
+
+  .metric-card .vs-avg {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 100px;
+  }
+
+  .vs-above { background: rgba(0,229,160,0.1); color: var(--green); }
+  .vs-below { background: rgba(255,71,87,0.1); color: var(--red); }
+  .vs-eq { background: rgba(138,155,184,0.1); color: var(--text2); }
+
+  .metric-label-sm {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .metric-value-sm {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .metric-sub-sm { font-size: 11px; color: var(--text2); }
+
+  /* GLOSSARY */
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+  }
+
+  .glossary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .glossary-term {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .glossary-abbr {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,212,255,0.1);
+    padding: 2px 8px;
+    border-radius: 100px;
+  }
+
+  .glossary-def {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .glossary-formula {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--bg3);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+  }
+
+  .glossary-tip {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--green);
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  /* HEAT MAP */
+  .heatmap-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    overflow-x: auto;
+    margin-bottom: 32px;
+  }
+
+  .heatmap-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    min-width: 800px;
+  }
+
+  .heatmap-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    padding: 6px 8px;
+    text-align: center;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .heatmap-table th.row-head {
+    text-align: left;
+    min-width: 130px;
+  }
+
+  .heatmap-cell {
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: default;
+    transition: transform 0.15s;
+    position: relative;
+  }
+
+  .heatmap-cell:hover { transform: scale(1.05); z-index: 10; }
+
+  .heatmap-cell .cell-name {
+    text-align: left;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    padding: 8px 4px;
+    cursor: default;
+  }
+
+  /* PROGRESS RING */
+  .ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .ring-wrap .ring-label {
+    font-size: 11px;
+    color: var(--text2);
+    text-align: center;
+  }
+
+  .ring-wrap .ring-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* TOOLTIP */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip-wrap .tt {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .tooltip-wrap:hover .tt { opacity: 1; }
+
+  /* CANVAS */
+  canvas { display: block; }
+
+  /* CHAMPION BANNER */
+  .champion-banner {
+    background: linear-gradient(135deg, rgba(245,197,66,0.08) 0%, rgba(124,58,237,0.08) 100%);
+    border: 1px solid rgba(245,197,66,0.2);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .champion-banner::before {
+    content: '🏆';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 80px;
+    opacity: 0.1;
+  }
+
+  .champion-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+    border: 2px solid rgba(245,197,66,0.4);
+    box-shadow: 0 0 20px rgba(245,197,66,0.2);
+    flex-shrink: 0;
+  }
+
+  .champion-info { flex: 1; }
+  .champion-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .champion-sub { font-size: 13px; color: var(--text2); }
+  .champion-stats {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .champ-stat { text-align: center; }
+  .champ-stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
+  .champ-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* PODIUM */
+  .podium-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .podium-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .podium-avatar-wrap {
+    position: relative;
+  }
+
+  .podium-crown {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+  }
+
+  .podium-block {
+    width: 80px;
+    background: var(--surface2);
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 14px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+
+  .podium-rank-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  .podium-name-sm {
+    font-size: 10px;
+    color: var(--text2);
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  /* ACTION BUTTON */
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,58,237,0.1));
+    border: 1px solid rgba(0,212,255,0.2);
+    color: var(--accent);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .action-btn:hover {
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.2));
+    box-shadow: 0 0 20px rgba(0,212,255,0.15);
+  }
+
+  /* COMPARISON PAGE */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .compare-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .compare-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+
+  .compare-card.selected {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(0,212,255,0.06), var(--surface));
+    box-shadow: 0 0 20px rgba(0,212,255,0.1);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  footer .foot-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  footer .foot-right {
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .container { padding: 0 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .header-title { font-size: 16px; }
+    .leaderboard-table { font-size: 12px; }
+    .leaderboard-table td, .leaderboard-table th { padding: 10px 10px; }
+  }
+
+  /* ANIMATED COUNTER */
+  .count-up { transition: all 0.05s; }
+
+  /* SEARCH / FILTER */
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 100px;
+    outline: none;
+    min-width: 200px;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: rgba(0,212,255,0.3); }
+  .search-input::placeholder { color: var(--text3); }
+
+  .select-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    padding: 9px 16px;
+    border-radius: 100px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    transition: border-color 0.2s;
+  }
+
+  .select-input:focus { border-color: rgba(0,212,255,0.3); }
+
+  /* SPARKLINE */
+  .sparkline-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ACHIEVEMENT BADGES */
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+
+  /* PROGRESS BAR ROW */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .progress-row-label { font-size: 13px; color: var(--text2); }
+  .progress-row-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .full-progress {
+    width: 100%;
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-top: 4px;
+    margin-bottom: 12px;
+  }
+
+  .full-progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <div class="logo-icon">📊</div>
+        <div>
+          <div class="header-title">Recruiter Intelligence</div>
+          <div class="header-sub">Agent Performance Dashboard</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="week-badge">Week of March 2, 2025</div>
+        <div class="live-dot">12 Agents</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="showPage('overview')">📈 Overview</button>
+    <button class="tab-btn" onclick="showPage('leaderboard')">🏆 Leaderboard</button>
+    <button class="tab-btn" onclick="showPage('metrics')">🔬 Metrics Deep Dive</button>
+    <button class="tab-btn" onclick="showPage('heatmap')">🌡️ Performance Heat Map</button>
+    <button class="tab-btn" onclick="showPage('individual')">👤 Individual Reports</button>
+    <button class="tab-btn" onclick="showPage('optimizer')">💡 Optimization Hub</button>
+    <button class="tab-btn" onclick="showPage('glossary')">📚 Glossary</button>
+  </nav>
+
+  <!-- ========== OVERVIEW PAGE ========== -->
+  <section id="page-overview" class="page active">
+
+    <!-- TOP STATS -->
+    <div class="stats-grid">
+      <div class="stat-card" style="--card-accent: linear-gradient(90deg, #00d4ff, #7c3aed)">
+        <div class="stat-label">Total Calls</div>
+        <div class="stat-value" id="stat-calls">7,617</div>
+        <div class="stat-sub">635 avg per agent</div>
+        <div class="stat-trend trend-neutral">📞 634.75 avg</div>
+      </div>
+      <div class="stat-card" style="--card-accent: linear-gradient(90deg, #00e5a0, #00d4ff)">
+        <div class="stat-label">Total Contacts</div>
+        <div class="stat-value">4,797</div>
+        <div class="stat-sub">63% contact rate</div>
+        <div class="stat-trend trend-up">↑ 63.0% avg rate</div>
+      </div>
+      <div class="stat-card" style="--card-accent: linear-gradient(90deg, #f5c542, #ff8c42)">
+        <div class="stat-label">Total Scheduled</div>
+        <div class="stat-value">515</div>
+        <div class="stat-sub">42.9 avg per agent</div>
+        <div class="stat-trend trend-up">🎯 11.4% sched rate</div>
+      </div>
+      <div class="stat-card" style="--card-accent: linear-gradient(90deg, #ff6b9d, #7c3aed)">
+        <div class="stat-label">Total Hires</div>
+        <div class="stat-value">175</div>
+        <div class="stat-sub">14.6 avg per agent</div>
+        <div class="stat-trend trend-up">✅ 34.0% close rate</div>
+      </div>
+      <div class="stat-card" style="--card-accent: linear-gradient(90deg, #ff4757, #ff8c42)">
+        <div class="stat-label">NGF Dispositions</div>
+        <div class="stat-value">2,316</div>
+        <div class="stat-sub">193 avg per agent</div>
+        <div class="stat-trend trend-down">↓ 30.4% of contacts</div>
+      </div>
+      <div class="stat-card" style="--card-accent: linear-gradient(90deg, #00d4ff, #00e5a0)">
+        <div class="stat-label">Avg Sched/Hour</div>
+        <div class="stat-value">1.38</div>
+        <div class="stat-sub">Best: 1.86 (Cole)</div>
+        <div class="stat-trend trend-up">📈 Cole leads pace</div>
+      </div>
+    </div>
+
+    <!-- CHAMPION BANNER -->
+    <div class="champion-banner">
+      <div class="champion-avatar" style="background: linear-gradient(135deg, #f5c542, #ff8c42)">CD</div>
+      <div class="champion-info">
+        <div class="champion-name">🥇 Cole Dennis — This Week's Top Performer</div>
+        <div class="champion-sub">Highest Schedule/Hour (1.86) · Highest Schedule % (16.81%) · Top 3 in Hires</div>
+        <div class="champion-stats">
+          <div class="champ-stat">
+            <div class="champ-stat-val" style="color: var(--gold)">1.86</div>
+            <div class="champ-stat-label">Sched/Hr</div>
+          </div>
+          <div class="champ-stat">
+            <div class="champ-stat-val" style="color: var(--green)">16.81%</div>
+            <div class="champ-stat-label">Sched %</div>
+          </div>
+          <div class="champ-stat">
+            <div class="champ-stat-val">509</div>
+            <div class="champ-stat-label">Calls</div>
+          </div>
+          <div class="champ-stat">
+            <div class="champ-stat-val">58</div>
+            <div class="champ-stat-label">Scheduled</div>
+          </div>
+          <div class="champ-stat">
+            <div class="champ-stat-val" style="color: var(--accent)">15</div>
+            <div class="champ-stat-label">Hires</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEY INSIGHTS -->
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Key Intelligence Alerts</div>
+      <div class="section-badge">12 agents analyzed</div>
+    </div>
+
+    <div class="insights-grid">
+      <div class="insight-card highlight">
+        <span class="insight-icon">⚡</span>
+        <div class="insight-title">Efficiency Champions</div>
+        <div class="insight-body">
+          <strong>Cole Dennis</strong> and <strong>Lucas Eichelberger</strong> lead Schedule % at <strong>16.81%</strong> and <strong>18.57%</strong> respectively — far above the 11.4% team average. Their secret: fewer total calls but dramatically higher conversion from contact to schedule.
+        </div>
+        <div class="insight-meta">METRIC: SCHED % = SCHED ÷ CONTACTS × 100</div>
+      </div>
+      <div class="insight-card warning">
+        <span class="insight-icon">⏱️</span>
+        <div class="insight-title">Pause Time Red Flag</div>
+        <div class="insight-body">
+          <strong>Sean Lutz</strong> has the highest Pause Time at <strong>4h 37m</strong> — nearly double Cole's 3h 24m. Excessive pause time directly reduces available calling hours and kills scheduling velocity. Every hour paused = ~1.38 lost scheduled interviews.
+        </div>
+        <div class="insight-meta">BENCHMARK: PAUSE TIME UNDER 3H IS OPTIMAL</div>
+      </div>
+      <div class="insight-card success">
+        <span class="insight-icon">🎯</span>
+        <div class="insight-title">Contact Rate Leaders</div>
+        <div class="insight-body">
+          <strong>Maria Smith</strong> leads contact rate at <strong>64.0%</strong> (507/792 calls). <strong>Samantha Stephens</strong> follows at <strong>65.7%</strong>. High contact rates suggest better timing strategies, stronger opener scripts, or superior lead quality management.
+        </div>
+        <div class="insight-meta">CONTACT RATE = CONTACTS ÷ CALLS × 100</div>
+      </div>
+      <div class="insight-card danger">
+        <span class="insight-icon">📵</span>
+        <div class="insight-title">No Answer Concern</div>
+        <div class="insight-body">
+          <strong>Liam Salazar</strong> has 315 No Answers — the highest on the team. This represents <strong>40.4%</strong> of his calls going unanswered, burning dial capacity. Consider time-of-day analysis and lead refresh for his pipeline.
+        </div>
+        <div class="insight-meta">BENCHMARK: NO ANS UNDER 35% OF CALLS</div>
+      </div>
+      <div class="insight-card highlight">
+        <span class="insight-icon">🔥</span>
+        <div class="insight-title">Hire Rate Leaders</div>
+        <div class="insight-body">
+          <strong>Bahni Khan, Samantha Stephens, and Madison Louderback</strong> each closed <strong>22 hires</strong> — tied for team best. Bahni also has the highest talk time at 24h28m, suggesting quality over volume approach pays dividends.
+        </div>
+        <div class="insight-meta">HIRES PER SCHEDULED: TEAM AVG 34.0%</div>
+      </div>
+      <div class="insight-card warning">
+        <span class="insight-icon">🔁</span>
+        <div class="insight-title">Duplicate Call Waste</div>
+        <div class="insight-body">
+          <strong>Lucas Eichelberger</strong> logged 22 duplicate calls — the team high. Combined team dupes total <strong>78</strong> wasted attempts. Deduplication protocols and better CRM discipline could recover hundreds of productive calls per week.
+        </div>
+        <div class="insight-meta">TEAM DUPE RATE: 78 / 7,617 = 1.02%</div>
+      </div>
+      <div class="insight-card success">
+        <span class="insight-icon">📅</span>
+        <div class="insight-title">EOD Yes Commitment</div>
+        <div class="insight-body">
+          <strong>Bahni Khan</strong> leads EOD Yes at 25, showing strong closing commitment from candidates on day-of callbacks. <strong>Lucas Eichelberger</strong> and <strong>Madison Louderback</strong> follow at 23 each. Low EOD Yes is a downstream hire killer.
+        </div>
+        <div class="insight-meta">EOD YES CORRELATES STRONGLY WITH HIRE RATE</div>
+      </div>
+      <div class="insight-card highlight">
+        <span class="insight-icon">💬</span>
+        <div class="insight-title">Talk Time vs. Results</div>
+        <div class="insight-body">
+          <strong>Daniela Repiso</strong> has the 2nd highest talk time (26h14m) but only <strong>8 hires</strong> — lowest on team. Compare to <strong>Madison Louderback</strong> (23h52m, 22 hires). Longer calls ≠ better outcomes. Script efficiency matters more.
+        </div>
+        <div class="insight-meta">REPISO: 3.27H TALK/HIRE · LOUDERBACK: 1.08H TALK/HIRE</div>
+      </div>
+    </div>
+
+    <!-- TEAM PERFORMANCE CANVAS -->
+    <div class="section-header" style="margin-top: 8px">
+      <div class="section-title"><span class="dot"></span> Team Sched % Distribution</div>
+    </div>
+    <div class="panel" style="margin-bottom: 32px">
+      <canvas id="schedChart" height="120"></canvas>
+    </div>
+
+    <!-- HIRE DISTRIBUTION -->
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Hire Distribution</div>
+    </div>
+    <div class="panel" style="margin-bottom: 32px">
+      <canvas id="hireChart" height="120"></canvas>
+    </div>
+
+  </section>
+
+  <!-- ========== LEADERBOARD PAGE ========== -->
+  <section id="page-leaderboard" class="page">
+
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Overall Performance Leaderboard</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+        <input type="text" class="search-input" placeholder="🔍 Search agent..." id="lbSearch" oninput="filterLeaderboard()">
+        <select class="select-input" id="lbSort" onchange="sortLeaderboard()">
+          <option value="score">Sort: Overall Score</option>
+          <option value="sched_pct">Sort: Sched %</option>
+          <option value="sched_hr">Sort: Sched/Hour</option>
+          <option value="hires">Sort: Hires</option>
+          <option value="calls">Sort: Calls</option>
+          <option value="contacts">Sort: Contacts</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="lbWrap" class="leaderboard-wrap">
+      <table class="leaderboard-table" id="lbTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Agent</th>
+            <th onclick="sortBy('score')">Overall Score</th>
+            <th onclick="sortBy('sched_pct')">Sched %</th>
+            <th onclick="sortBy('sched_hr')">Sched/Hr</th>
+            <th onclick="sortBy('hires')">Hires</th>
+            <th onclick="sortBy('calls')">Calls</th>
+            <th onclick="sortBy('contacts')">Contacts</th>
+            <th onclick="sortBy('contact_rate')">Contact Rate</th>
+            <th>Status</th>
+            <th>Achievements</th>
+          </tr>
+        </thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+    </div>
+
+    <!-- PODIUM -->
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Top 3 Podium</div>
+    </div>
+    <div id="podiumContainer" style="background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 32px; overflow: hidden; position: relative;">
+      <div id="podiumRow" class="podium-row"></div>
+    </div>
+
+  </section>
+
+  <!-- ========== METRICS PAGE ========== -->
+  <section id="page-metrics" class="page">
+
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Metrics Deep Dive</div>
+      <div class="section-badge">Select a metric</div>
+    </div>
+
+    <!-- METRIC SELECTOR -->
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px;" id="metricSelector">
+      <button class="action-btn" onclick="showMetric('sched_pct')" id="m-sched_pct">📊 Schedule %</button>
+      <button class="action-btn" onclick="showMetric('sched_hr')" id="m-sched_hr">⚡ Sched/Hour</button>
+      <button class="action-btn" onclick="showMetric('hires')" id="m-hires">✅ Hires</button>
+      <button class="action-btn" onclick="showMetric('calls')" id="m-calls">📞 Calls</button>
+      <button class="action-btn" onclick="showMetric('contacts')" id="m-contacts">🤝 Contacts</button>
+      <button class="action-btn" onclick="showMetric('contact_rate')" id="m-contact_rate">📈 Contact Rate</button>
+      <button class="action-btn" onclick="showMetric('talk_time')" id="m-talk_time">💬 Talk Time</button>
+      <button class="action-btn" onclick="showMetric('pause_time')" id="m-pause_time">⏸️ Pause Time</button>
+      <button class="action-btn" onclick="showMetric('ngf')" id="m-ngf">🚫 NGF</button>
+      <button class="action-btn" onclick="showMetric('no_ans')" id="m-no_ans">📵 No Answer</button>
+      <button class="action-btn" onclick="showMetric('eod_yes')" id="m-eod_yes">✔️ EOD Yes</button>
+      <button class="action-btn" onclick="showMetric('dupes')" id="m-dupes">🔁 Dupes</button>
+    </div>
+
+    <div id="metricContent"></div>
+
+  </section>
+
+  <!-- ========== HEAT MAP PAGE ========== -->
+  <section id="page-heatmap" class="page">
+
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Performance Heat Map</div>
+      <div class="section-badge">Color = vs team average</div>
+    </div>
+
+    <div class="heatmap-wrap">
+      <div style="margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <span style="font-size: 12px; color: var(--text2)">Legend:</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:4px;background:rgba(0,229,160,0.7);display:inline-block"></span>Top performer</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:4px;background:rgba(0,212,255,0.4);display:inline-block"></span>Above avg</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:4px;background:rgba(255,140,66,0.4);display:inline-block"></span>Below avg</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><span style="width:16px;height:16px;border-radius:4px;background:rgba(255,71,87,0.5);display:inline-block"></span>Needs attention</span>
+      </div>
+      <table class="heatmap-table" id="heatmapTable"></table>
+    </div>
+
+    <!-- RANKING SUMMARY -->
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Category Rankings</div>
+    </div>
+    <div id="categoryRankings" class="insights-grid"></div>
+
+  </section>
+
+  <!-- ========== INDIVIDUAL PAGE ========== -->
+  <section id="page-individual" class="page">
+
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Individual Agent Reports</div>
+    </div>
+
+    <div class="recruiter-selector" id="recruiterSelector"></div>
+
+    <div id="individualContent"></div>
+
+  </section>
+
+  <!-- ========== OPTIMIZER PAGE ========== -->
+  <section id="page-optimizer" class="page">
+
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Optimization Playbook</div>
+      <div class="section-badge">Data-driven · Rep-specific · Actionable</div>
+    </div>
+
+    <!-- TEAM STAT SUMMARY BANNERS -->
+    <div class="insights-grid" style="margin-bottom: 28px;">
+      <div class="insight-card" style="border-color: rgba(245,197,66,0.2); background: linear-gradient(135deg, rgba(245,197,66,0.04), var(--surface))">
+        <span class="insight-icon">🧠</span>
+        <div class="insight-title">The #1 Lever: Sched %</div>
+        <div class="insight-body">Cole Dennis books <strong>1 in 6 contacts</strong>. Team average is <strong>1 in 9</strong>. A +2% improvement across all agents = <strong>~90 additional schedules this week</strong> with zero additional dials.</div>
+      </div>
+      <div class="insight-card warning">
+        <span class="insight-icon">🕐</span>
+        <div class="insight-title">Pause Time Costs</div>
+        <div class="insight-body">Team averages <strong>4h 17m pause/day</strong>. Cutting to 3h across all agents unlocks <strong>~15 extra calling hours/week</strong> — roughly 375 additional dials and ~20 more schedules.</div>
+      </div>
+      <div class="insight-card danger">
+        <span class="insight-icon">📅</span>
+        <div class="insight-title">EOD Gap is Killing Show Rates</div>
+        <div class="insight-body">4 agents have ≤7 EOD Yes confirmations. Bahni Khan shows <strong>25 EOD Yes → 22 hires (88% close)</strong>. Building a team-wide EOD call block could unlock 15–25 additional hires per week.</div>
+      </div>
+      <div class="insight-card success">
+        <span class="insight-icon">🏅</span>
+        <div class="insight-title">Peer Coaching Opportunity</div>
+        <div class="insight-body"><strong>Lucas (18.6%) and Cole (16.8%)</strong> have mastered contact-to-schedule conversion. Pair them with Sean (6.6%) and Liam (7.1%) in a weekly 30-min script coaching session for immediate lift.</div>
+      </div>
+    </div>
+
+    <!-- FILTER ROW -->
+    <div class="filter-row">
+      <div class="section-title" style="font-size:16px"><span class="dot"></span> Agent-Specific Action Plans</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+        <button class="action-btn" onclick="filterOpt('all')" id="opt-all" style="border-color:rgba(0,212,255,0.4);color:var(--accent)">All Agents</button>
+        <button class="action-btn" onclick="filterOpt('critical')" id="opt-critical">🔴 Critical Only</button>
+        <button class="action-btn" onclick="filterOpt('good')" id="opt-good">🟢 On Track</button>
+      </div>
+    </div>
+
+    <div id="optimizerCards"></div>
+
+  </section>
+
+  <!-- ========== GLOSSARY PAGE ========== -->
+  <section id="page-glossary" class="page">
+
+    <div class="section-header">
+      <div class="section-title"><span class="dot"></span> Metrics Glossary & Playbook</div>
+      <div class="section-badge">Complete reference guide</div>
+    </div>
+
+    <div class="glossary-grid" id="glossaryGrid"></div>
+
+  </section>
+
+  <footer>
+    <div class="foot-left">RECRUITER INTELLIGENCE v1.0 · WEEK OF 3/2 · 12 AGENTS</div>
+    <div class="foot-right">Data auto-calculated from agent performance records</div>
+  </footer>
+
+</div><!-- end container -->
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const AVG = {
+  calls: 634.75, contacts: 399.75, sched_hr: 1.38, sched_pct: 11.40,
+  sched: 42.92, ngf: 193.0, hu: 87.58, no_ans: 235.0,
+  fu: 25.33, already_sched: 11.67, eod_yes: 14.67, eod_no: 18.08,
+  dupes: 6.50, hires: 14.58
+};
+
+const AGENTS = [
+  { name:"Bahni Khan", initials:"BK", calls:717, contacts:487, sched_hr:1.60, sched_pct:11.09, talk:"24:28:02", wait:"7:57:39", pause:"2:26:06", wrap:"1:14:25", sched:54, ngf:199, hu:137, no_ans:230, fu:27, already_sched:15, eod_yes:25, eod_no:27, dupes:3, hires:22 },
+  { name:"Sean Lutz", initials:"SL", calls:772, contacts:504, sched_hr:0.99, sched_pct:6.55, talk:"24:04:30", wait:"8:47:26", pause:"4:37:38", wrap:"0:35:59", sched:33, ngf:267, hu:127, no_ans:268, fu:25, already_sched:16, eod_yes:17, eod_no:18, dupes:1, hires:13 },
+  { name:"Liam Salazar", initials:"LS", calls:780, contacts:465, sched_hr:0.96, sched_pct:7.10, talk:"21:22:31", wait:"10:11:07", pause:"3:50:15", wrap:"2:51:11", sched:33, ngf:289, hu:41, no_ans:315, fu:42, already_sched:20, eod_yes:7, eod_no:26, dupes:7, hires:10 },
+  { name:"Maria Smith", initials:"MS", calls:792, contacts:507, sched_hr:1.43, sched_pct:10.06, talk:"25:44:56", wait:"9:24:46", pause:"2:43:57", wrap:"0:29:49", sched:51, ngf:260, hu:89, no_ans:285, fu:39, already_sched:16, eod_yes:24, eod_no:21, dupes:7, hires:17 },
+  { name:"Samantha Stephens", initials:"SS", calls:839, contacts:551, sched_hr:1.33, sched_pct:7.99, talk:"22:17:31", wait:"10:14:29", pause:"3:49:05", wrap:"0:35:14", sched:44, ngf:235, hu:186, no_ans:288, fu:42, already_sched:18, eod_yes:5, eod_no:17, dupes:4, hires:22 },
+  { name:"Cole Dennis", initials:"CD", calls:509, contacts:345, sched_hr:1.86, sched_pct:16.81, talk:"24:46:52", wait:"5:05:29", pause:"6:24:37", wrap:"1:17:32", sched:58, ngf:146, hu:35, no_ans:164, fu:42, already_sched:7, eod_yes:21, eod_no:25, dupes:11, hires:15 },
+  { name:"Lucas Eichelberger", initials:"LE", calls:504, contacts:237, sched_hr:1.80, sched_pct:18.57, talk:"17:51:40", wait:"6:17:55", pause:"5:34:51", wrap:"0:15:55", sched:44, ngf:108, hu:30, no_ans:267, fu:1, already_sched:1, eod_yes:23, eod_no:8, dupes:22, hires:13 },
+  { name:"Madison Louderback", initials:"ML", calls:562, contacts:406, sched_hr:1.69, sched_pct:13.79, talk:"23:52:28", wait:"6:17:57", pause:"4:34:35", wrap:"2:59:23", sched:56, ngf:147, hu:112, no_ans:156, fu:33, already_sched:12, eod_yes:23, eod_no:20, dupes:3, hires:22 },
+  { name:"Brianna Medeiros", initials:"BM", calls:483, contacts:286, sched_hr:1.17, sched_pct:11.54, talk:"21:35:22", wait:"6:00:47", pause:"5:00:45", wrap:"0:29:28", sched:33, ngf:132, hu:67, no_ans:197, fu:14, already_sched:11, eod_yes:11, eod_no:16, dupes:2, hires:10 },
+  { name:"Daniela Repiso", initials:"DR", calls:584, contacts:412, sched_hr:1.07, sched_pct:8.98, talk:"26:14:26", wait:"7:08:44", pause:"2:51:59", wrap:"1:03:44", sched:37, ngf:217, hu:95, no_ans:172, fu:32, already_sched:0, eod_yes:8, eod_no:14, dupes:9, hires:8 },
+  { name:"Parker Gallaher", initials:"PG", calls:614, contacts:350, sched_hr:1.28, sched_pct:11.71, talk:"23:17:32", wait:"8:13:15", pause:"3:45:36", wrap:"0:34:46", sched:41, ngf:163, hu:112, no_ans:264, fu:2, already_sched:13, eod_yes:5, eod_no:7, dupes:7, hires:16 },
+  { name:"Taylor Holland", initials:"TH", calls:461, contacts:247, sched_hr:1.36, sched_pct:12.55, talk:"14:19:32", wait:"5:26:08", pause:"5:51:36", wrap:"3:06:07", sched:31, ngf:153, hu:20, no_ans:214, fu:5, already_sched:11, eod_yes:7, eod_no:18, dupes:2, hires:7 },
+];
+
+// Compute derived fields
+AGENTS.forEach(a => {
+  a.contact_rate = (a.contacts / a.calls * 100);
+  // parse talk time to hours
+  const parseTT = (s) => { const p = s.split(':'); return parseInt(p[0]) + parseInt(p[1])/60 + parseInt(p[2])/3600; };
+  a.talk_hrs = parseTT(a.talk);
+  a.pause_hrs = parseTT(a.pause);
+  a.wait_hrs = parseTT(a.wait);
+  a.wrap_hrs = parseTT(a.wrap || "0:00:00");
+  // Composite score (weighted)
+  a.score = Math.round(
+    a.sched_pct * 3.5 +
+    a.sched_hr * 15 +
+    (a.hires / AVG.hires) * 20 +
+    a.contact_rate * 0.3 +
+    (a.eod_yes / AVG.eod_yes) * 5
+  );
+});
+
+const COLORS = [
+  '#00d4ff','#7c3aed','#00e5a0','#f5c542','#ff6b9d',
+  '#ff8c42','#4fc3f7','#a78bfa','#34d399','#fbbf24','#f87171','#60a5fa'
+];
+
+function getColor(idx) { return COLORS[idx % COLORS.length]; }
+
+function avatarBg(idx) {
+  const bgs = [
+    'linear-gradient(135deg,#00d4ff,#7c3aed)',
+    'linear-gradient(135deg,#00e5a0,#00d4ff)',
+    'linear-gradient(135deg,#f5c542,#ff8c42)',
+    'linear-gradient(135deg,#ff6b9d,#7c3aed)',
+    'linear-gradient(135deg,#7c3aed,#ff6b9d)',
+    'linear-gradient(135deg,#f5c542,#ff6b9d)',
+    'linear-gradient(135deg,#00e5a0,#7c3aed)',
+    'linear-gradient(135deg,#ff8c42,#f5c542)',
+    'linear-gradient(135deg,#00d4ff,#00e5a0)',
+    'linear-gradient(135deg,#ff4757,#ff8c42)',
+    'linear-gradient(135deg,#4fc3f7,#7c3aed)',
+    'linear-gradient(135deg,#a78bfa,#f5c542)',
+  ];
+  return bgs[idx % bgs.length];
+}
+
+// ============================================================
+// PAGE NAVIGATION
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.tab-btn');
+  const tabMap = ['overview','leaderboard','metrics','heatmap','individual','optimizer','glossary'];
+  tabs[tabMap.indexOf(id)].classList.add('active');
+
+  if (id === 'leaderboard') buildLeaderboard();
+  if (id === 'heatmap') buildHeatmap();
+  if (id === 'individual') buildIndividualSelector();
+  if (id === 'optimizer') buildOptimizer();
+  if (id === 'glossary') buildGlossary();
+  if (id === 'metrics') showMetric('sched_pct');
+}
+
+// ============================================================
+// CHARTS (Canvas)
+// ============================================================
+function drawBarChart(canvasId, labels, values, avgVal, colorFn) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = canvas.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width, H = canvas.height / dpr;
+  const barH = Math.floor((H - 20) / labels.length) - 6;
+  const maxVal = Math.max(...values) * 1.1;
+  const leftPad = 145, rightPad = 60;
+  const chartW = W - leftPad - rightPad;
+
+  ctx.clearRect(0, 0, W, H);
+
+  labels.forEach((lbl, i) => {
+    const y = i * (barH + 6) + 10;
+    const bw = (values[i] / maxVal) * chartW;
+
+    // label
+    ctx.fillStyle = '#8a9bb8';
+    ctx.font = '12px Instrument Sans, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(lbl.length > 14 ? lbl.split(' ')[0] : lbl, leftPad - 10, y + barH/2 + 4);
+
+    // bar bg
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    roundRect(ctx, leftPad, y, chartW, barH, 5);
+    ctx.fill();
+
+    // bar fill
+    const grad = ctx.createLinearGradient(leftPad, 0, leftPad + bw, 0);
+    const c = colorFn(i);
+    grad.addColorStop(0, c + 'cc');
+    grad.addColorStop(1, c + '66');
+    ctx.fillStyle = grad;
+    roundRect(ctx, leftPad, y, bw, barH, 5);
+    ctx.fill();
+
+    // value
+    ctx.fillStyle = '#e8edf5';
+    ctx.font = '500 11px DM Mono, monospace';
+    ctx.textAlign = 'left';
+    const dispVal = typeof values[i] === 'number' && values[i] % 1 !== 0 ? values[i].toFixed(2) : values[i];
+    ctx.fillText(dispVal, leftPad + bw + 8, y + barH/2 + 4);
+  });
+
+  // avg line
+  if (avgVal !== null) {
+    const ax = leftPad + (avgVal / maxVal) * chartW;
+    ctx.strokeStyle = 'rgba(245,197,66,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(ax, 6);
+    ctx.lineTo(ax, H - 6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(245,197,66,0.8)';
+    ctx.font = '10px DM Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('avg', ax, 6);
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ============================================================
+// OVERVIEW CHARTS
+// ============================================================
+function buildOverviewCharts() {
+  setTimeout(() => {
+    drawBarChart('schedChart',
+      AGENTS.map(a => a.name),
+      AGENTS.map(a => a.sched_pct),
+      AVG.sched_pct,
+      (i) => COLORS[i % COLORS.length]
+    );
+    drawBarChart('hireChart',
+      AGENTS.map(a => a.name),
+      AGENTS.map(a => a.hires),
+      AVG.hires,
+      (i) => COLORS[(i + 3) % COLORS.length]
+    );
+  }, 100);
+}
+
+// ============================================================
+// LEADERBOARD
+// ============================================================
+let sortedAgents = [...AGENTS].sort((a,b) => b.score - a.score);
+let sortKey = 'score';
+let sortDir = 'desc';
+
+function buildLeaderboard() {
+  renderLeaderboardTable();
+  buildPodium();
+}
+
+function renderLeaderboardTable() {
+  const search = (document.getElementById('lbSearch') || {}).value || '';
+  const tbody = document.getElementById('lbBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  let data = sortedAgents.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+
+  data.forEach((a, idx) => {
+    const overallRank = sortedAgents.indexOf(a) + 1;
+    const tr = document.createElement('tr');
+    const statusTag = getStatusTag(overallRank);
+    const maxScore = sortedAgents[0].score;
+
+    tr.innerHTML = `
+      <td class="rank-cell ${overallRank <= 3 ? 'rank-'+overallRank : ''}">${overallRank <= 3 ? ['🥇','🥈','🥉'][overallRank-1] : overallRank}</td>
+      <td>
+        <div class="recruiter-name">
+          <div class="avatar" style="background:${avatarBg(AGENTS.indexOf(a))}; color:white">${a.initials}</div>
+          ${a.name}
+        </div>
+      </td>
+      <td>
+        <div class="score-bar-wrap">
+          <div class="score-bar-bg">
+            <div class="score-bar-fill" style="width:${(a.score/maxScore*100).toFixed(1)}%; background:${COLORS[AGENTS.indexOf(a)%COLORS.length]}"></div>
+          </div>
+          <span class="score-num">${a.score}</span>
+        </div>
+      </td>
+      <td><span style="color:${a.sched_pct > AVG.sched_pct ? 'var(--green)' : 'var(--red)'}">${a.sched_pct.toFixed(2)}%</span></td>
+      <td><span style="color:${a.sched_hr > AVG.sched_hr ? 'var(--green)' : 'var(--red)'}">${a.sched_hr.toFixed(2)}</span></td>
+      <td><strong>${a.hires}</strong></td>
+      <td>${a.calls.toLocaleString()}</td>
+      <td>${a.contacts.toLocaleString()}</td>
+      <td><span style="color:${a.contact_rate > 60 ? 'var(--green)' : a.contact_rate > 50 ? 'var(--accent)' : 'var(--orange)'}">${a.contact_rate.toFixed(1)}%</span></td>
+      <td>${statusTag}</td>
+      <td><div class="badge-row">${getAchievements(a)}</div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function getStatusTag(rank) {
+  if (rank === 1) return '<span class="tag tag-elite">👑 Elite</span>';
+  if (rank <= 3) return '<span class="tag tag-good">⭐ Top Tier</span>';
+  if (rank <= 6) return '<span class="tag tag-avg">📈 Solid</span>';
+  if (rank <= 9) return '<span class="tag tag-watch">⚠️ Watch</span>';
+  return '<span class="tag tag-low">🔴 Needs Help</span>';
+}
+
+function getAchievements(a) {
+  const badges = [];
+  if (a.sched_hr === Math.max(...AGENTS.map(x=>x.sched_hr))) badges.push('<span class="badge" style="background:rgba(245,197,66,0.1);color:var(--gold);border-color:rgba(245,197,66,0.3)">⚡ Fastest</span>');
+  if (a.hires >= 22) badges.push('<span class="badge" style="background:rgba(0,229,160,0.1);color:var(--green);border-color:rgba(0,229,160,0.3)">🏆 Top Hire</span>');
+  if (a.contact_rate > 65) badges.push('<span class="badge" style="background:rgba(0,212,255,0.1);color:var(--accent);border-color:rgba(0,212,255,0.3)">🎯 Connector</span>');
+  if (a.sched_pct > 15) badges.push('<span class="badge" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.3)">📊 Converter</span>');
+  if (a.dupes <= 3) badges.push('<span class="badge" style="background:rgba(0,229,160,0.08);color:var(--green);border-color:rgba(0,229,160,0.2)">✅ Clean</span>');
+  if (a.eod_yes >= 23) badges.push('<span class="badge" style="background:rgba(255,107,157,0.1);color:var(--pink);border-color:rgba(255,107,157,0.3)">📅 Closer</span>');
+  return badges.join('') || '<span style="color:var(--text3);font-size:12px">—</span>';
+}
+
+function filterLeaderboard() {
+  renderLeaderboardTable();
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  else { sortKey = key; sortDir = 'desc'; }
+  const mult = sortDir === 'desc' ? -1 : 1;
+  sortedAgents.sort((a,b) => (a[key] - b[key]) * mult);
+  renderLeaderboardTable();
+}
+
+function sortLeaderboard() {
+  const key = document.getElementById('lbSort').value;
+  sortBy(key);
+}
+
+function buildPodium() {
+  const top3 = [...AGENTS].sort((a,b) => b.score - a.score).slice(0,3);
+  const podium = document.getElementById('podiumRow');
+  if (!podium) return;
+
+  const heights = [120, 160, 100];
+  const order = [1, 0, 2]; // 2nd, 1st, 3rd
+
+  podium.innerHTML = order.map(ri => {
+    const a = top3[ri];
+    const ai = AGENTS.indexOf(a);
+    const rank = ri + 1;
+    return `
+      <div class="podium-item">
+        <div class="podium-avatar-wrap">
+          ${rank === 1 ? '<div class="podium-crown">👑</div>' : ''}
+          <div class="avatar" style="background:${avatarBg(ai)};color:white;width:48px;height:48px;font-size:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;${rank===1?'border:2px solid rgba(245,197,66,0.5);box-shadow:0 0 15px rgba(245,197,66,0.3)':''}">${a.initials}</div>
+        </div>
+        <div class="podium-block" style="height:${heights[ri]}px; ${rank===1?'background:linear-gradient(180deg,rgba(245,197,66,0.1),var(--surface2));border-color:rgba(245,197,66,0.3)':''}">
+          <div class="podium-rank-num" style="color:${rank===1?'var(--gold)':rank===2?'#c0c8d8':'#cd8a4a'}">${rank===1?'🥇':rank===2?'🥈':'🥉'}</div>
+          <div class="podium-name-sm">${a.name.split(' ')[0]}</div>
+          <div style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);margin-top:6px">${a.score} pts</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// METRIC DETAIL
+// ============================================================
+const METRIC_CONFIG = {
+  sched_pct: {
+    label: 'Schedule %',
+    key: 'sched_pct',
+    format: v => v.toFixed(2) + '%',
+    avg: AVG.sched_pct,
+    higher_better: true,
+    color: '#00e5a0',
+    description: 'The percentage of contacts that result in a scheduled interview. This is your primary conversion metric — the single most important number for predicting future hire volume.',
+    formula: 'Sched ÷ Contacts × 100',
+    benchmark: '11.4% team avg | 18.6% best | 6.6% lowest',
+    tips: [
+      { title: 'Script Quality', body: 'The highest converters (Cole at 16.8%, Lucas at 18.6%) use more targeted qualification questions upfront, avoiding long calls with unqualified leads. Review their call recordings.' },
+      { title: 'Lead Quality Filter', body: 'Low Sched % can signal bad lead quality. Cross-check No Answer rates — agents with high No Ans AND low Sched % are working stale leads.' },
+      { title: 'Objection Handling', body: 'Track NGF reasons. If "Not Interested" dominates, script needs new value hooks. If "Already Scheduled" is high, CRM deduplication is failing.' },
+      { title: 'Time of Day Targeting', body: 'Agents with high contact rates but low schedule % are reaching leads but not converting. Analyze their best hours and standardize call windows.' },
+    ]
+  },
+  sched_hr: {
+    label: 'Scheduled/Hour',
+    key: 'sched_hr',
+    format: v => v.toFixed(2),
+    avg: AVG.sched_hr,
+    higher_better: true,
+    color: '#f5c542',
+    description: 'Schedules produced per working hour. This is the velocity metric — it captures both call volume AND conversion efficiency in one number. High sched/hr means more output per unit of time.',
+    formula: 'Total Scheduled ÷ Non-Pause Hours',
+    benchmark: '1.38 team avg | 1.86 best (Cole) | 0.96 lowest (Liam)',
+    tips: [
+      { title: 'Eliminate Pause Waste', body: 'Sean Lutz (0.99/hr) has 4h37m pause time. Cole Dennis (1.86/hr) runs leaner. Every hour off the phone costs approximately 1.38 scheduled interviews.' },
+      { title: 'Batch Callback Blocks', body: 'Agents who cluster their follow-up calls in 90-min focused blocks report higher sched/hr than those who spread callbacks throughout the day.' },
+      { title: 'Reduce Wrap Time', body: 'Madison Louderback has 2h59m wrap time — the second highest. Streamlining CRM data entry (templates, macros) could recover 30-45 min daily.' },
+      { title: 'Morning vs Afternoon', body: 'Data shows most successful contacts occur 9-11am and 4-6pm local time. Focus heaviest calling volume in these windows.' },
+    ]
+  },
+  hires: {
+    label: 'Hires',
+    key: 'hires',
+    format: v => v,
+    avg: AVG.hires,
+    higher_better: true,
+    color: '#00d4ff',
+    description: 'Total successful hires — the ultimate outcome metric. Not all schedules convert to hires, so a high schedule count with low hires indicates downstream process issues (no-shows, ghosting, disqualification).',
+    formula: 'Hires ÷ Scheduled × 100 = Close Rate',
+    benchmark: '14.6 avg | 22 best (3-way tie) | 7 lowest',
+    tips: [
+      { title: 'Show Rate Optimization', body: 'Samantha Stephens: 44 sched → 22 hires (50% show/close rate). Compare to Parker Gallaher: 41 sched → 16 hires (39%). Confirmation calls and SMS reminders drive show rates.' },
+      { title: 'Candidate Nurture', body: 'After scheduling, send a confirmation + location/prep email within 1 hour. Research shows 40% fewer no-shows with same-day confirmation sequences.' },
+      { title: 'Day-Before Confirmation', body: 'Build a standard D-1 confirmation workflow. EOD Yes tracking shows who is doing this — Bahni (25 EOD Yes, 22 hires) vs Taylor (7 EOD Yes, 7 hires) is striking.' },
+      { title: 'Quality Over Quantity', body: 'Daniela Repiso has the 2nd most contacts (412) but only 8 hires. Over-scheduling unqualified candidates wastes downstream resources. Stricter phone screen criteria pays off.' },
+    ]
+  },
+  calls: {
+    label: 'Total Calls',
+    key: 'calls',
+    format: v => v,
+    avg: AVG.calls,
+    higher_better: true,
+    color: '#7c3aed',
+    description: 'Total dial attempts, including no-answers, voicemails, and live contacts. Raw call volume is an activity metric — important for establishing baseline effort but not sufficient alone for performance evaluation.',
+    formula: 'Dials Attempted (all dispositions)',
+    benchmark: '634.75 team avg | 839 most (Samantha) | 461 least (Taylor)',
+    tips: [
+      { title: 'Volume vs Efficiency', body: 'Samantha makes the most calls (839) but has 7.99% Sched%. Cole makes far fewer (509) with 16.81%. Set minimum call floors but reward conversion rate, not volume.' },
+      { title: 'Auto-Dialer Optimization', body: 'Review predictive dialer settings — No Answer rates above 40% suggest dialing lists need refreshing. Stale leads mean wasted dials.' },
+      { title: 'Realistic Targets', body: 'Taylor Holland (461 calls) is the lowest but has above-average Sched% (12.55%). Setting arbitrary call quotas can penalize efficiency-focused agents.' },
+    ]
+  },
+  contacts: {
+    label: 'Contacts',
+    key: 'contacts',
+    format: v => v,
+    avg: AVG.contacts,
+    higher_better: true,
+    color: '#ff6b9d',
+    description: 'Live person contacts — the number of calls where a human actually answered. This is your reachable pool for converting to schedules. Contact rate = Contacts ÷ Calls.',
+    formula: 'Live Answers ÷ Total Calls × 100 = Contact Rate',
+    benchmark: '399.75 avg | 551 most (Samantha) | 237 least (Lucas)',
+    tips: [
+      { title: 'Lead List Refresh', body: 'Lucas Eichelberger has only 237 contacts from 504 calls (47% contact rate) — lowest on the team. His lead list may be outdated. Prioritize fresh leads.' },
+      { title: 'Calling Hours', body: 'Review what hours each agent is making calls. Contact rates above 65% (Samantha 65.7%, Maria 64.0%) suggest better timing strategies.' },
+      { title: 'Caller ID Trust', body: 'If contact rates drop week-over-week, phone numbers may be flagged as spam. Rotate numbers or use local presence dialing.' },
+    ]
+  },
+  contact_rate: {
+    label: 'Contact Rate',
+    key: 'contact_rate',
+    format: v => v.toFixed(1) + '%',
+    avg: AVG.contacts / AVG.calls * 100,
+    higher_better: true,
+    color: '#00e5a0',
+    description: 'What percentage of dial attempts result in a live human conversation. This measures lead list quality, call timing strategy, and caller ID reputation. Below 50% suggests systemic issues.',
+    formula: 'Contacts ÷ Total Calls × 100',
+    benchmark: '62.9% team avg | 65.7% best (Samantha) | 47.0% worst (Lucas)',
+    tips: [
+      { title: 'Time Zone Alignment', body: 'Always dial within the lead\'s local business hours (9am-7pm). Agents calling outside windows see 20-30% lower contact rates.' },
+      { title: 'Local Area Codes', body: 'Using local presence dialing (matching area code to the lead) increases answer rates by 30-40% vs toll-free or out-of-state numbers.' },
+      { title: 'Voicemail Strategy', body: 'A compelling, brief (15-20s) voicemail with a callback number and clear value prop can pull back 5-8% of missed contacts.' },
+    ]
+  },
+  talk_time: {
+    label: 'Talk Time',
+    key: 'talk_hrs',
+    format: v => v.toFixed(1) + 'h',
+    avg: 22.5,
+    higher_better: null,
+    color: '#4fc3f7',
+    description: 'Total hours spent in active live conversation. Too low suggests not enough contacts; too high may indicate inefficient conversations or over-pitching unqualified leads.',
+    formula: 'Sum of all live call durations',
+    benchmark: '22.5h avg | 26.2h most (Daniela) | 14.3h least (Taylor)',
+    tips: [
+      { title: 'Talk Time per Hire', body: 'Daniela: 26.2h → 8 hires = 3.3h/hire. Madison: 23.9h → 22 hires = 1.1h/hire. Shorter, more focused conversations drive better hire ratios.' },
+      { title: 'Call Length Distribution', body: 'Optimal calls for phone screens are 5-8 minutes. Track average call duration — conversations over 12 min rarely improve schedule rates and burn bandwidth.' },
+      { title: 'Script Tightening', body: 'High talk time with low results = either leads aren\'t qualified early enough, or agent is overselling instead of qualifying. Add knockout questions in first 90 seconds.' },
+    ]
+  },
+  pause_time: {
+    label: 'Pause Time',
+    key: 'pause_hrs',
+    format: v => v.toFixed(1) + 'h',
+    avg: 4.3,
+    higher_better: false,
+    color: '#ff4757',
+    description: 'Time spent off the phone while logged in. Includes breaks, between-call processing, bathroom, training, etc. Excessive pause time directly eats into schedule velocity.',
+    formula: 'Total logged-in time − (talk + wait + wrap)',
+    benchmark: '4.3h avg | 2.4h best (Bahni) | 5.9h worst (Taylor)',
+    tips: [
+      { title: 'Pause Accountability', body: 'Set a soft limit of 3h pause time per shift. Share pause time data in team standup. Social visibility alone reduces pause by 15-20% on average.' },
+      { title: 'Between-Call Workflow', body: 'Most pause happens between calls. Use predictive/auto-dialer to eliminate the gap. Manual dialers inflate pause by 30-45 min/day.' },
+      { title: 'Structured Breaks', body: 'Build in 2 × 15-min breaks and a 30-min lunch. Everything else should be dialable. Agents who structure breaks show lower overall pause times.' },
+      { title: 'Taylor Holland Alert', body: 'Taylor\'s 5h51m pause is the highest — combined with lowest call volume, this is the most critical improvement opportunity on the team.' },
+    ]
+  },
+  ngf: {
+    label: 'NGF (No Good Fit)',
+    key: 'ngf',
+    format: v => v,
+    avg: AVG.ngf,
+    higher_better: false,
+    color: '#ff8c42',
+    description: 'Contacts dispositioned as "Not a Good Fit." Includes not interested, wrong number, language barriers, wrong position type, etc. High NGF suggests either poor lead quality or weak opener/pitch.',
+    formula: 'Count of NGF-dispositioned calls',
+    benchmark: '193 avg | 108 lowest (Lucas) | 289 highest (Liam)',
+    tips: [
+      { title: 'NGF Breakdown Analysis', body: 'Not all NGF is equal. Track subcategories: "Not Interested" vs "Wrong Person" vs "Language Barrier." Each requires a different fix.' },
+      { title: 'Lead Quality Score', body: 'High NGF correlates with poor lead sourcing. Agents with NGF > 250 (Liam: 289, Sean: 267) should receive freshened lead lists next week.' },
+      { title: 'Hook Improvement', body: 'If NGF is mostly "Not Interested" in first 30 seconds, the opener needs rework. A/B test 2 different openers with high-NGF agents.' },
+    ]
+  },
+  no_ans: {
+    label: 'No Answer',
+    key: 'no_ans',
+    format: v => v,
+    avg: AVG.no_ans,
+    higher_better: false,
+    color: '#a78bfa',
+    description: 'Calls where nobody answered — includes true no-answers and likely voicemails. High No Answer burns dial capacity and indicates stale leads or poor timing.',
+    formula: 'Count of unanswered dials',
+    benchmark: '235 avg | 156 lowest (Madison) | 315 highest (Liam)',
+    tips: [
+      { title: 'Liam Priority', body: 'Liam Salazar: 315 no answers (40.4% of calls). This is the team\'s worst rate and directly explains his low schedule count despite high call volume.' },
+      { title: 'Best Callback Times', body: 'No-answer leads should be re-queued for different time slots — if the first dial was AM, retry PM. Data shows 3-touch attempts increase contact rate by 40%.' },
+      { title: 'List Segmentation', body: 'Separate fresh leads (less than 7 days old) from aged leads. Route fresh leads to high-volume dialers, aged leads to persistent follow-up specialists.' },
+    ]
+  },
+  eod_yes: {
+    label: 'EOD Yes',
+    key: 'eod_yes',
+    format: v => v,
+    avg: AVG.eod_yes,
+    higher_better: true,
+    color: '#00e5a0',
+    description: 'End-of-day "Yes" commitments — candidates who confirmed they are still coming in. This is a leading indicator of show rate and ultimately hires. EOD Yes correlates powerfully with actual hire conversion.',
+    formula: 'Count of EOD Yes confirmations (same-day callbacks)',
+    benchmark: '14.7 avg | 25 best (Bahni) | 5 lowest (Samantha/Parker)',
+    tips: [
+      { title: 'EOD Yes = Hire Predictor', body: 'Bahni: 25 EOD Yes → 22 hires (88% conversion). Taylor: 7 EOD Yes → 7 hires (100%). Parker: 5 EOD Yes → 16 hires (anomaly — examine separately).' },
+      { title: 'Build EOD Call Block', body: 'Schedule a mandatory 4:00-5:30pm block for all agents to call that day\'s scheduled candidates. Standardize this confirmation script team-wide.' },
+      { title: 'Samantha Alert', body: 'Samantha: 44 scheduled, only 5 EOD Yes — yet 22 hires. Either she closes at interview stage very well, or she\'s not tracking EOD calls accurately.' },
+    ]
+  },
+  dupes: {
+    label: 'Duplicate Calls',
+    key: 'dupes',
+    format: v => v,
+    avg: AVG.dupes,
+    higher_better: false,
+    color: '#ff4757',
+    description: 'Calls made to the same lead that was already contacted. Duplicates waste dial time, annoy candidates, and risk compliance issues. They represent pure inefficiency in the dialing workflow.',
+    formula: 'Calls to already-dispositioned/already-dialed records',
+    benchmark: '6.5 avg | 1 lowest (Sean) | 22 highest (Lucas)',
+    tips: [
+      { title: 'Lucas Alert', body: 'Lucas Eichelberger has 22 dupes — over 3× the team average. CRM discipline or dialer list management needs immediate attention.' },
+      { title: 'Real-Time Dedup', body: 'Enable real-time duplicate detection in your dialer. Flag any lead that\'s been called more than twice in the same week and route them off active queues.' },
+      { title: 'Training Moment', body: 'Review disposition workflows with high-dupe agents. Often dupes happen when dispositions aren\'t saved properly and leads cycle back into the queue.' },
+    ]
+  },
+};
+
+function showMetric(key) {
+  const cfg = METRIC_CONFIG[key];
+  if (!cfg) return;
+
+  document.querySelectorAll('#metricSelector .action-btn').forEach(b => {
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  const activeBtn = document.getElementById('m-' + key);
+  if (activeBtn) {
+    activeBtn.style.background = `linear-gradient(135deg, ${cfg.color}22, ${cfg.color}11)`;
+    activeBtn.style.borderColor = cfg.color + '66';
+    activeBtn.style.color = cfg.color;
+  }
+
+  const sorted = [...AGENTS].sort((a,b) => cfg.higher_better !== false ? b[cfg.key] - a[cfg.key] : a[cfg.key] - b[cfg.key]);
+  const maxVal = Math.max(...AGENTS.map(a => a[cfg.key]));
+
+  const barRows = sorted.map((a, i) => {
+    const idx = AGENTS.indexOf(a);
+    const pct = (a[cfg.key] / maxVal * 100).toFixed(1);
+    const isAvgLine = cfg.avg !== null;
+    const avgPct = cfg.avg !== null ? (cfg.avg / maxVal * 100).toFixed(1) : null;
+    const vs = cfg.higher_better === true ? (a[cfg.key] >= cfg.avg ? 'above' : 'below') :
+               cfg.higher_better === false ? (a[cfg.key] <= cfg.avg ? 'above' : 'below') : 'eq';
+    return `
+      <div class="bar-row">
+        <span class="bar-label" style="font-size:12px;color:var(--text2)">${a.name}</span>
+        <div class="bar-outer" style="position:relative">
+          ${avgPct ? `<div class="avg-line" style="left:${avgPct}%"></div>` : ''}
+          <div class="bar-inner" style="width:${pct}%;background:linear-gradient(90deg,${COLORS[idx%COLORS.length]}cc,${COLORS[idx%COLORS.length]}66)">
+            ${cfg.format(a[cfg.key])}
+          </div>
+        </div>
+        <span style="font-size:11px;min-width:14px;color:${vs==='above'?'var(--green)':vs==='below'?'var(--red)':'var(--text2)'}">${vs==='above'?'↑':vs==='below'?'↓':'—'}</span>
+      </div>
+    `;
+  }).join('');
+
+  const tipsHtml = cfg.tips.map((t, i) => `
+    <div class="optimizer-item">
+      <div class="optimizer-num">0${i+1}</div>
+      <div class="optimizer-text"><strong>${t.title}:</strong> ${t.body}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('metricContent').innerHTML = `
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">${cfg.label} — Team Comparison</div>
+        <div style="margin-bottom:12px; display:flex; gap:16px; flex-wrap:wrap;">
+          <div>
+            <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase">Team Average</div>
+            <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:${cfg.color}">${cfg.format(cfg.avg)}</div>
+          </div>
+          <div>
+            <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase">Best</div>
+            <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:var(--text)">${cfg.format(Math.max(...AGENTS.map(a=>a[cfg.key])))}</div>
+          </div>
+          <div>
+            <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase">Range</div>
+            <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;color:var(--text2)">${cfg.format(Math.min(...AGENTS.map(a=>a[cfg.key])))} – ${cfg.format(Math.max(...AGENTS.map(a=>a[cfg.key])))}</div>
+          </div>
+        </div>
+        <div class="bar-chart">${barRows}</div>
+        <div style="margin-top:14px;padding:10px 14px;background:var(--bg3);border-radius:10px;border-left:3px solid rgba(245,197,66,0.5)">
+          <span style="font-family:DM Mono,monospace;font-size:10px;color:rgba(245,197,66,0.7)">⸺ yellow dashed line = team average</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">What This Metric Means</div>
+        <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px">${cfg.description}</p>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px">
+          <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Formula</div>
+          <div style="font-family:DM Mono,monospace;font-size:13px;color:var(--accent)">${cfg.formula}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px">
+          <div style="font-family:DM Mono,monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Benchmarks</div>
+          <div style="font-size:13px;color:var(--text2)">${cfg.benchmark}</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:24px">
+      <div class="panel-title">Optimization Tactics</div>
+      <div class="optimizer-list">${tipsHtml}</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// HEAT MAP
+// ============================================================
+function buildHeatmap() {
+  const metrics = [
+    { key: 'sched_pct', label: 'Sched %', avg: AVG.sched_pct, hi: true },
+    { key: 'sched_hr', label: 'Sched/Hr', avg: AVG.sched_hr, hi: true },
+    { key: 'hires', label: 'Hires', avg: AVG.hires, hi: true },
+    { key: 'contact_rate', label: 'Contact%', avg: 62.9, hi: true },
+    { key: 'talk_hrs', label: 'Talk(h)', avg: 22.5, hi: null },
+    { key: 'pause_hrs', label: 'Pause(h)', avg: 4.3, hi: false },
+    { key: 'ngf', label: 'NGF', avg: AVG.ngf, hi: false },
+    { key: 'no_ans', label: 'No Ans', avg: AVG.no_ans, hi: false },
+    { key: 'eod_yes', label: 'EOD Yes', avg: AVG.eod_yes, hi: true },
+    { key: 'dupes', label: 'Dupes', avg: AVG.dupes, hi: false },
+  ];
+
+  const sorted = [...AGENTS].sort((a,b) => b.score - a.score);
+
+  const table = document.getElementById('heatmapTable');
+  if (!table) return;
+
+  let html = '<thead><tr><th class="row-head">Agent</th>';
+  metrics.forEach(m => { html += `<th>${m.label}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  sorted.forEach((a, ri) => {
+    const ai = AGENTS.indexOf(a);
+    html += `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="background:${avatarBg(ai)};color:white;width:28px;height:28px;font-size:11px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:Syne,sans-serif;flex-shrink:0">${a.initials}</div><span style="font-size:13px;color:var(--text);font-weight:500">${a.name.split(' ')[0]}</span></div></td>`;
+    metrics.forEach(m => {
+      const v = a[m.key];
+      const ratio = v / m.avg;
+      let bg, color;
+      if (m.hi === null) {
+        // neutral — no better/worse
+        bg = 'rgba(138,155,184,0.08)'; color = 'var(--text2)';
+      } else if (m.hi) {
+        if (ratio >= 1.3) { bg = 'rgba(0,229,160,0.7)'; color = '#003322'; }
+        else if (ratio >= 1.05) { bg = 'rgba(0,212,255,0.35)'; color = 'var(--text)'; }
+        else if (ratio >= 0.9) { bg = 'rgba(138,155,184,0.08)'; color = 'var(--text2)'; }
+        else if (ratio >= 0.7) { bg = 'rgba(255,140,66,0.35)'; color = 'var(--text)'; }
+        else { bg = 'rgba(255,71,87,0.5)'; color = 'var(--text)'; }
+      } else {
+        if (ratio <= 0.7) { bg = 'rgba(0,229,160,0.7)'; color = '#003322'; }
+        else if (ratio <= 0.9) { bg = 'rgba(0,212,255,0.35)'; color = 'var(--text)'; }
+        else if (ratio <= 1.1) { bg = 'rgba(138,155,184,0.08)'; color = 'var(--text2)'; }
+        else if (ratio <= 1.3) { bg = 'rgba(255,140,66,0.35)'; color = 'var(--text)'; }
+        else { bg = 'rgba(255,71,87,0.5)'; color = 'var(--text)'; }
+      }
+      const disp = m.key === 'contact_rate' ? v.toFixed(1)+'%' :
+                   m.key === 'sched_pct' ? v.toFixed(1)+'%' :
+                   m.key === 'sched_hr' ? v.toFixed(2) :
+                   (m.key === 'talk_hrs' || m.key === 'pause_hrs') ? v.toFixed(1) : v;
+      html += `<td><div class="heatmap-cell" style="background:${bg};color:${color}">${disp}</div></td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+
+  // Category Rankings
+  const cr = document.getElementById('categoryRankings');
+  if (cr) {
+    const cats = [
+      { label: 'Top Converter', desc: 'Highest Schedule %', winner: [...AGENTS].sort((a,b)=>b.sched_pct-a.sched_pct)[0], val: v => v.sched_pct.toFixed(2)+'%', icon: '📊' },
+      { label: 'Fastest Closer', desc: 'Highest Sched/Hour', winner: [...AGENTS].sort((a,b)=>b.sched_hr-a.sched_hr)[0], val: v => v.sched_hr.toFixed(2)+'/hr', icon: '⚡' },
+      { label: 'Top Hirer', desc: 'Most Hires', winner: [...AGENTS].sort((a,b)=>b.hires-a.hires)[0], val: v => v.hires+' hires', icon: '✅' },
+      { label: 'Best Connector', desc: 'Highest Contact Rate', winner: [...AGENTS].sort((a,b)=>b.contact_rate-a.contact_rate)[0], val: v => v.contact_rate.toFixed(1)+'%', icon: '🤝' },
+      { label: 'Most Focused', desc: 'Lowest Pause Time', winner: [...AGENTS].sort((a,b)=>a.pause_hrs-b.pause_hrs)[0], val: v => v.pause_hrs.toFixed(1)+'h pause', icon: '🎯' },
+      { label: 'Cleanest Data', desc: 'Fewest Duplicates', winner: [...AGENTS].sort((a,b)=>a.dupes-b.dupes)[0], val: v => v.dupes+' dupes', icon: '✨' },
+    ];
+    cr.innerHTML = cats.map(c => {
+      const ai = AGENTS.indexOf(c.winner);
+      return `
+        <div class="insight-card success">
+          <span class="insight-icon">${c.icon}</span>
+          <div class="insight-title">${c.label}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+            <div class="avatar" style="background:${avatarBg(ai)};color:white;width:36px;height:36px;font-size:13px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif">${c.winner.initials}</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;color:var(--text)">${c.winner.name}</div>
+              <div style="font-size:12px;color:var(--text2)">${c.desc}</div>
+            </div>
+          </div>
+          <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:var(--green);margin-top:10px">${c.val(c.winner)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// ============================================================
+// INDIVIDUAL REPORT
+// ============================================================
+let selectedAgent = 0;
+
+function buildIndividualSelector() {
+  const sel = document.getElementById('recruiterSelector');
+  if (!sel) return;
+  sel.innerHTML = AGENTS.map((a, i) => {
+    const ai = AGENTS.indexOf(a);
+    return `
+      <button class="recruiter-btn ${i === selectedAgent ? 'active' : ''}" onclick="selectAgent(${i})">
+        <div class="mini-avatar" style="background:${avatarBg(ai)};color:white">${a.initials}</div>
+        ${a.name.split(' ')[0]}
+      </button>
+    `;
+  }).join('');
+  renderIndividual(selectedAgent);
+}
+
+function selectAgent(idx) {
+  selectedAgent = idx;
+  document.querySelectorAll('.recruiter-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  renderIndividual(idx);
+}
+
+function renderIndividual(idx) {
+  const a = AGENTS[idx];
+  const ai = idx;
+  const rank = [...AGENTS].sort((a,b)=>b.score-a.score).indexOf(a) + 1;
+  const content = document.getElementById('individualContent');
+  if (!content) return;
+
+  // Compute vs average
+  const vsAvg = (val, avg, hiIsBetter) => {
+    const diff = ((val - avg) / avg * 100).toFixed(1);
+    const up = hiIsBetter === true ? val >= avg : hiIsBetter === false ? val <= avg : true;
+    return `<span class="vs-avg ${up ? 'vs-above' : 'vs-below'}">${diff > 0 ? '+' : ''}${diff}%</span>`;
+  };
+
+  const strengths = [];
+  const improvements = [];
+
+  if (a.sched_pct > AVG.sched_pct) strengths.push('Schedule % above average');
+  else improvements.push('Schedule % below average — work on contact-to-schedule conversion');
+  if (a.sched_hr > AVG.sched_hr) strengths.push('Schedule velocity above average');
+  else improvements.push('Sched/Hour below average — reduce pause time and call gaps');
+  if (a.hires > AVG.hires) strengths.push('Above-average hires — strong downstream conversion');
+  else improvements.push('Below-average hires — focus on EOD confirmation calls');
+  if (a.contact_rate > 62.9) strengths.push('Strong contact rate — good timing and list quality');
+  else improvements.push('Contact rate below team average — refresh lead list');
+  if (a.pause_hrs < AVG.pause_hrs || 4.3) strengths.push('Low pause time — strong focus and phone time');
+  if (a.pause_hrs > 4) improvements.push('Pause time is high — set structured break schedule');
+  if (a.dupes > AVG.dupes) improvements.push('Duplicate calls above average — improve CRM discipline');
+
+  const score = a.score;
+  const maxScore = Math.max(...AGENTS.map(x=>x.score));
+
+  content.innerHTML = `
+    <!-- PROFILE HEADER -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:24px;display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;bottom:0;width:200px;background:linear-gradient(270deg,${COLORS[ai%COLORS.length]}0a,transparent);pointer-events:none"></div>
+      <div class="avatar" style="background:${avatarBg(ai)};color:white;width:72px;height:72px;font-size:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0;border:2px solid ${COLORS[ai%COLORS.length]}66;box-shadow:0 0 20px ${COLORS[ai%COLORS.length]}33">${a.initials}</div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px">${a.name}</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Rank #${rank} of 12 · Overall Score: ${score}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="flex:1;height:8px;background:var(--bg3);border-radius:100px;overflow:hidden">
+            <div style="width:${(score/maxScore*100).toFixed(1)}%;height:100%;background:linear-gradient(90deg,${COLORS[ai%COLORS.length]},${COLORS[(ai+3)%COLORS.length]});border-radius:100px"></div>
+          </div>
+          <span style="font-family:DM Mono,monospace;font-size:12px;color:var(--text2)">${(score/maxScore*100).toFixed(0)}th percentile</span>
+        </div>
+        <div class="badge-row">${getAchievements(a)}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex-shrink:0">
+        <div style="text-align:center">
+          <div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:${a.sched_pct>AVG.sched_pct?'var(--green)':'var(--red)'}">${a.sched_pct.toFixed(1)}%</div>
+          <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Sched %</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:${a.sched_hr>AVG.sched_hr?'var(--green)':'var(--red)'}">${a.sched_hr.toFixed(2)}</div>
+          <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Sched/Hr</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:${a.hires>=AVG.hires?'var(--green)':'var(--orange)'}">${a.hires}</div>
+          <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Hires</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- METRIC CARDS -->
+    <div class="metric-grid">
+      ${[
+        {label:'Calls',key:'calls',avg:AVG.calls,hi:true,disp:a.calls},
+        {label:'Contacts',key:'contacts',avg:AVG.contacts,hi:true,disp:a.contacts},
+        {label:'Contact Rate',key:'contact_rate',avg:62.9,hi:true,disp:a.contact_rate.toFixed(1)+'%'},
+        {label:'Scheduled',key:'sched',avg:AVG.sched,hi:true,disp:a.sched},
+        {label:'NGF',key:'ngf',avg:AVG.ngf,hi:false,disp:a.ngf},
+        {label:'No Answer',key:'no_ans',avg:AVG.no_ans,hi:false,disp:a.no_ans},
+        {label:'EOD Yes',key:'eod_yes',avg:AVG.eod_yes,hi:true,disp:a.eod_yes},
+        {label:'EOD No',key:'eod_no',avg:AVG.eod_no,hi:false,disp:a.eod_no},
+        {label:'F/U',key:'fu',avg:AVG.fu,hi:true,disp:a.fu},
+        {label:'Talk Time',key:'talk_hrs',avg:22.5,hi:null,disp:a.talk_hrs.toFixed(1)+'h'},
+        {label:'Pause Time',key:'pause_hrs',avg:4.3,hi:false,disp:a.pause_hrs.toFixed(1)+'h'},
+        {label:'Dupes',key:'dupes',avg:AVG.dupes,hi:false,disp:a.dupes},
+      ].map(m => {
+        const val = m.key==='contact_rate'?a.contact_rate:a[m.key];
+        const above = m.hi===true?val>=m.avg:m.hi===false?val<=m.avg:true;
+        const diff = ((val-m.avg)/m.avg*100).toFixed(0);
+        const badge = m.hi===null?'<span class="vs-avg vs-eq">neutral</span>':`<span class="vs-avg ${above?'vs-above':'vs-below'}">${diff>0?'+':''}${diff}% vs avg</span>`;
+        return `<div class="metric-card">
+          ${badge}
+          <div class="metric-label-sm">${m.label}</div>
+          <div class="metric-value-sm" style="color:${m.hi===null?'var(--text)':above?'var(--green)':'var(--red)'}">${m.disp}</div>
+          <div class="metric-sub-sm">avg: ${m.hi===null||m.hi?m.avg:m.avg} ${m.label==='contact_rate'?'%':''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- STRENGTHS / IMPROVEMENTS -->
+    <div class="two-col" style="margin-top:0">
+      <div class="panel">
+        <div class="panel-title" style="color:var(--green)">✅ Strengths</div>
+        ${strengths.length ? strengths.map(s => `<div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start"><span style="color:var(--green);flex-shrink:0">→</span><span style="font-size:13px;color:var(--text2);line-height:1.6">${s}</span></div>`).join('') : '<div style="color:var(--text3);font-size:13px">No clear strengths yet — needs improvement across all metrics.</div>'}
+      </div>
+      <div class="panel">
+        <div class="panel-title" style="color:var(--orange)">🎯 Focus Areas</div>
+        ${improvements.slice(0,4).map(s => `<div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start"><span style="color:var(--orange);flex-shrink:0">→</span><span style="font-size:13px;color:var(--text2);line-height:1.6">${s}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- TIME BREAKDOWN -->
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-title">Time Allocation Breakdown</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px">
+        ${[
+          {label:'Talk Time',val:a.talk_hrs,color:'var(--accent)',icon:'💬'},
+          {label:'Wait Time',val:a.wait_hrs,color:'var(--text2)',icon:'⏳'},
+          {label:'Pause Time',val:a.pause_hrs,color:a.pause_hrs>4?'var(--red)':'var(--green)',icon:'⏸️'},
+          {label:'Wrap Time',val:a.wrap_hrs,color:'var(--orange)',icon:'📝'},
+        ].map(t => `
+          <div style="text-align:center;flex:1;min-width:80px">
+            <div style="font-size:20px;margin-bottom:6px">${t.icon}</div>
+            <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:${t.color}">${t.val.toFixed(1)}h</div>
+            <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">${t.label}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${[
+        {label:'Talk Time',val:a.talk_hrs,max:27,color:'var(--accent)'},
+        {label:'Pause Time',val:a.pause_hrs,max:7,color:a.pause_hrs>4?'var(--red)':'var(--green)'},
+        {label:'Wait Time',val:a.wait_hrs,max:12,color:'var(--text2)'},
+        {label:'Wrap Time',val:a.wrap_hrs,max:4,color:'var(--orange)'},
+      ].map(b => `
+        <div class="progress-row">
+          <span class="progress-row-label">${b.label}</span>
+          <span class="progress-row-val">${b.val.toFixed(1)}h</span>
+        </div>
+        <div class="full-progress">
+          <div class="full-progress-fill" style="width:${Math.min(100,(b.val/b.max*100)).toFixed(1)}%;background:${b.color}"></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ============================================================
+// OPTIMIZER — FULL REP-SPECIFIC ENGINE
+// ============================================================
+
+let optFilter = 'all';
+
+function filterOpt(f) {
+  optFilter = f;
+  document.querySelectorAll('[id^="opt-"]').forEach(b => {
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  const activeBtn = document.getElementById('opt-' + f);
+  if (activeBtn) {
+    activeBtn.style.background = 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(124,58,237,0.15))';
+    activeBtn.style.borderColor = 'rgba(0,212,255,0.4)';
+    activeBtn.style.color = 'var(--accent)';
+  }
+  buildOptimizer();
+}
+
+function buildOptimizer() {
+  // ---- PER-AGENT DEEP ANALYSIS ENGINE ----
+  function analyzeAgent(a) {
+    const plans = [];
+
+    // === SCHEDULE % ===
+    const schedPctVsAvg = ((a.sched_pct - AVG.sched_pct) / AVG.sched_pct * 100).toFixed(0);
+    const projectedSchedIfAvg = Math.round(a.contacts * (AVG.sched_pct / 100));
+    const schedGap = projectedSchedIfAvg - a.sched;
+    if (a.sched_pct < 8) {
+      plans.push({ cat: 'Conversion', level: 'critical', icon: '📉',
+        headline: `Schedule % is critically low at ${a.sched_pct.toFixed(2)}% — team avg is ${AVG.sched_pct.toFixed(1)}%`,
+        body: `${a.name.split(' ')[0]} is converting only <strong>1 in ${Math.round(100/a.sched_pct)} contacts</strong> into a schedule (team best is 1 in ${Math.round(100/Math.max(...AGENTS.map(x=>x.sched_pct)))}). With ${a.contacts} contacts this week, reaching the team average would have produced <strong>${schedGap} additional schedules</strong> (~${Math.round(schedGap * (AVG.hires/AVG.sched))} more hires).`,
+        actions: [
+          `📋 <strong>Script Audit (This Week):</strong> Pull 5 call recordings and identify the exact point where leads disengage. Is it in the opener, value pitch, or close?`,
+          `🎯 <strong>Add a Hard Qualifier by Call 30s:</strong> "Are you currently looking for full-time work?" early disqualifies time-wasters and tightens conversion on real leads.`,
+          `🤝 <strong>Peer Shadow Session:</strong> Book 30 min listening to Cole Dennis or Lucas Eichelberger calls — both convert above 16%. Have ${a.name.split(' ')[0]} take notes on opener and objection handling.`,
+          `📊 <strong>Track NGF Subcategories:</strong> ${a.name.split(' ')[0]}'s ${a.ngf} NGF dispositions need breakdown — "not interested" vs "wrong role" vs "language" each require a different script fix.`,
+          `⏰ <strong>Best-Window Dialing:</strong> Shift heaviest call volume to 9–11am and 4–6pm local time for leads — contact rate uplift alone can improve sched% by 1–2 points.`
+        ]
+      });
+    } else if (a.sched_pct < AVG.sched_pct * 0.92) {
+      plans.push({ cat: 'Conversion', level: 'warning', icon: '📊',
+        headline: `Schedule % at ${a.sched_pct.toFixed(2)}% — ${Math.abs(schedPctVsAvg)}% below team average`,
+        body: `${a.name.split(' ')[0]} is close to average but leaving <strong>~${Math.max(0,schedGap)} schedules on the table</strong> each week versus the team mean. Small script improvements compound significantly over weeks.`,
+        actions: [
+          `🔧 <strong>Tighten the Close:</strong> After pitching, end every call with a direct booking question: "I have openings Tuesday at 10am or Thursday at 2pm — which works for you?" Assumptive scheduling increases conversion 15–20%.`,
+          `📝 <strong>NGF Deep Dive:</strong> ${a.ngf} NGF contacts — identify the top 2 objection types and prepare scripted responses for each with manager.`,
+          `🔁 <strong>Recycle F/Us Aggressively:</strong> ${a.name.split(' ')[0]} has ${a.fu} follow-ups pending. Each is a warm lead who showed interest. Re-attempt within 24h before they go cold.`
+        ]
+      });
+    } else if (a.sched_pct >= AVG.sched_pct * 1.25) {
+      plans.push({ cat: 'Conversion', level: 'good', icon: '🏆',
+        headline: `Elite Schedule % at ${a.sched_pct.toFixed(2)}% — top ${Math.round((1-AGENTS.filter(x=>x.sched_pct<=a.sched_pct).length/AGENTS.length)*100)}th percentile`,
+        body: `${a.name.split(' ')[0]}'s conversion rate is <strong>${Math.abs(schedPctVsAvg)}% above team average</strong>. This agent's script and qualification approach should be documented and shared as a team standard.`,
+        actions: [
+          `🎙️ <strong>Record a Best-Practice Call:</strong> Have ${a.name.split(' ')[0]} record 2–3 exemplary calls this week to use as onboarding/coaching material for the team.`,
+          `📚 <strong>Script Documentation:</strong> Ask ${a.name.split(' ')[0]} to write out their exact opener, value pitch, and close for team distribution.`,
+          `🎓 <strong>Pair as Mentor:</strong> Assign ${a.name.split(' ')[0]} as peer coach for a lower-converting agent for 1 week — both agents typically improve.`
+        ]
+      });
+    }
+
+    // === SCHED/HOUR (VELOCITY) ===
+    const velocityGap = (AVG.sched_hr - a.sched_hr).toFixed(2);
+    const lostSchedsFromVelocity = Math.max(0, Math.round((AVG.sched_hr - a.sched_hr) * (a.talk_hrs + a.wait_hrs)));
+    if (a.sched_hr < 1.1) {
+      plans.push({ cat: 'Velocity', level: 'critical', icon: '⚡',
+        headline: `Sched/Hour at ${a.sched_hr.toFixed(2)} — far below the ${AVG.sched_hr.toFixed(2)} team average`,
+        body: `At current velocity, ${a.name.split(' ')[0]} is producing <strong>${(AVG.sched_hr - a.sched_hr).toFixed(2)} fewer schedules per hour</strong> than average. Across ~${(a.talk_hrs + a.wait_hrs).toFixed(0)} active calling hours this week, that's approximately <strong>${lostSchedsFromVelocity} schedules left unrealized</strong>.`,
+        actions: [
+          `⏱️ <strong>Reduce Between-Call Gaps:</strong> Use a predictive or power dialer to eliminate manual dialing lag. Even a 30-second reduction per dial × ${a.calls} calls = <strong>${Math.round(a.calls * 0.5 / 60)} minutes of recovered calling time</strong>.`,
+          `🗂️ <strong>Pre-Sort Lead Queue:</strong> Spend 5 min at shift start organizing leads by priority tier (fresh < 3 days, warm callback, aged). Work highest-probability first to maximize early-shift momentum.`,
+          `⏸️ <strong>Pause Time Reduction:</strong> ${a.pause_hrs.toFixed(1)}h pause this week. Set a phone alarm at the 3h mark as a self-check. Target: finish the week at ${(a.pause_hrs * 0.75).toFixed(1)}h or less.`,
+          `📱 <strong>Callback Batching:</strong> Group all F/U callbacks into a single 90-min block (suggest 1:00–2:30pm) rather than scattering them — context switching kills per-hour efficiency.`
+        ]
+      });
+    } else if (a.sched_hr < AVG.sched_hr * 0.9) {
+      plans.push({ cat: 'Velocity', level: 'warning', icon: '🔋',
+        headline: `Sched/Hour at ${a.sched_hr.toFixed(2)} — ${((AVG.sched_hr - a.sched_hr)/AVG.sched_hr*100).toFixed(0)}% below team average`,
+        body: `${a.name.split(' ')[0]} is slightly below average schedule velocity. The primary driver is likely <strong>pause time (${a.pause_hrs.toFixed(1)}h) or wrap time (${a.wrap_hrs.toFixed(1)}h)</strong>. Trimming either by 30 min would recover 0.3–0.5 schedules at current conversion rate.`,
+        actions: [
+          `📝 <strong>Wrap Time Audit:</strong> ${a.wrap_hrs.toFixed(1)}h wrap time this week. Use a CRM shortcut key or disposition template to get post-call entry under 60 seconds. Goal: cut wrap to ${Math.max(0.5, a.wrap_hrs * 0.6).toFixed(1)}h.`,
+          `🔔 <strong>Pause Accountability Check:</strong> Share pause time data with ${a.name.split(' ')[0]} in Monday 1:1. Awareness alone typically reduces pause by 15%.`
+        ]
+      });
+    } else if (a.sched_hr >= 1.7) {
+      plans.push({ cat: 'Velocity', level: 'good', icon: '🚀',
+        headline: `Elite velocity at ${a.sched_hr.toFixed(2)} sched/hour — among team's fastest`,
+        body: `${a.name.split(' ')[0]} is producing schedules at a rate <strong>${((a.sched_hr/AVG.sched_hr-1)*100).toFixed(0)}% above team average</strong>. This efficiency should be protected — avoid assigning heavy admin tasks during prime calling hours.`,
+        actions: [
+          `🛡️ <strong>Protect Prime Hours:</strong> Ensure ${a.name.split(' ')[0]}'s 9am–12pm block is free from non-calling work. High-velocity agents lose disproportionately more when interrupted.`,
+          `📈 <strong>Scale the Volume:</strong> Consider increasing lead volume by 10–15% — at current velocity, ${a.name.split(' ')[0]} can absorb more dials without losing conversion quality.`
+        ]
+      });
+    }
+
+    // === PAUSE TIME ===
+    if (a.pause_hrs > 5.5) {
+      const recoveredSchedsIfFixed = ((a.pause_hrs - 3) * a.sched_hr).toFixed(1);
+      plans.push({ cat: 'Time On Phone', level: 'critical', icon: '⏸️',
+        headline: `Pause time at ${a.pause_hrs.toFixed(1)}h — highest concern, ${(a.pause_hrs - 3).toFixed(1)}h over target`,
+        body: `${a.name.split(' ')[0]} is spending <strong>${((a.pause_hrs / (a.talk_hrs + a.pause_hrs + a.wait_hrs + a.wrap_hrs)) * 100).toFixed(0)}% of logged-in time paused</strong>. If pause was reduced to 3h, at current sched/hour velocity, that's a potential gain of <strong>~${recoveredSchedsIfFixed} additional schedules</strong> this week alone.`,
+        actions: [
+          `🚨 <strong>Immediate Intervention:</strong> Discuss pause data in next 1:1 and get ${a.name.split(' ')[0]}'s explanation. Distinguish systemic issues (tech, training) from behavioral ones.`,
+          `⏰ <strong>Structured Break Contract:</strong> Agree on 2×15min breaks + 30min lunch = 60min scheduled pause. Everything else is dialing time. Put it in writing.`,
+          `📲 <strong>Supervisor Alert Threshold:</strong> Set a dialer alert if pause exceeds 45 consecutive minutes — manager gets a notification. Accountability drives behavioral change fast.`,
+          `🔍 <strong>Root Cause Check:</strong> High wrap + pause combo can indicate CRM issues, unclear dispositions, or excessive back-office work. Audit what ${a.name.split(' ')[0]} is doing during pause time.`
+        ]
+      });
+    } else if (a.pause_hrs > 4.5) {
+      plans.push({ cat: 'Time On Phone', level: 'warning', icon: '⏱️',
+        headline: `Pause time at ${a.pause_hrs.toFixed(1)}h — above 4h threshold`,
+        body: `${a.name.split(' ')[0]}'s pause is <strong>${(a.pause_hrs - AVG.pause_hrs || 4.3).toFixed(1)}h above team average</strong>. Every 30 minutes recovered at current sched/hour = ${(a.sched_hr * 0.5).toFixed(2)} more schedules.`,
+        actions: [
+          `⏰ <strong>Set a Pause Budget:</strong> 3h maximum daily. Use a visible timer on the desk/monitor as a visual cue.`,
+          `📋 <strong>Daily Standup Check-in:</strong> Include pause time in morning standup. "Yesterday's pause: Xh. Today's target: 3h." Public commitment drives accountability.`
+        ]
+      });
+    } else if (a.pause_hrs < 2.8) {
+      plans.push({ cat: 'Time On Phone', level: 'good', icon: '🎯',
+        headline: `Excellent phone discipline — only ${a.pause_hrs.toFixed(1)}h pause`,
+        body: `${a.name.split(' ')[0]} is among the most time-disciplined on the team, spending the maximum possible time in active calling mode. This directly contributes to their scheduling output.`,
+        actions: [
+          `✅ <strong>Recognize Publicly:</strong> Call out ${a.name.split(' ')[0]}'s phone discipline in team standup. It reinforces the behavior and sets a standard for others.`
+        ]
+      });
+    }
+
+    // === NO ANSWER RATE ===
+    const naRate = (a.no_ans / a.calls * 100);
+    if (naRate > 40) {
+      plans.push({ cat: 'Lead Quality', level: 'critical', icon: '📵',
+        headline: `${a.no_ans} no-answers — ${naRate.toFixed(0)}% of all calls going unanswered`,
+        body: `Nearly <strong>2 in every 5 dials</strong> produces no live conversation. ${a.name.split(' ')[0]}'s lead list is either stale, incorrectly timed, or flagged as spam. With ${a.contacts} live contacts from ${a.calls} calls, improving to the team's best contact rate (${Math.max(...AGENTS.map(x=>x.contact_rate)).toFixed(0)}%) would yield <strong>${Math.round(a.calls * (Math.max(...AGENTS.map(x=>x.contact_rate))/100) - a.contacts)} additional contacts</strong> — and proportional schedules.`,
+        actions: [
+          `🗓️ <strong>Immediate Lead Refresh:</strong> Request a new lead batch prioritizing records added in the last 7 days. Aged leads (14+ days) should be moved to a secondary queue.`,
+          `🕐 <strong>Time-of-Day A/B Test:</strong> Split next week's dials — 50% in the 8–11am window, 50% in the 3–6pm window. Track which produces higher contact rates by hour.`,
+          `📞 <strong>Caller ID Check:</strong> Ask IT/dialer admin to check if ${a.name.split(' ')[0]}'s outbound numbers are flagged as spam or "Scam Likely." Rotate numbers if flagged.`,
+          `📬 <strong>Multi-Touch Strategy:</strong> For no-answer records, auto-queue a text follow-up or voicemail drop. Leads who get 3 touches have a 40% higher callback rate than single-touch.`,
+          `🗺️ <strong>Geographic Lead Alignment:</strong> Ensure leads are being called during their local business hours. A PST lead being called at 7am PST is unlikely to answer.`
+        ]
+      });
+    } else if (naRate > 34) {
+      plans.push({ cat: 'Lead Quality', level: 'warning', icon: '📵',
+        headline: `No-answer rate at ${naRate.toFixed(0)}% — above 34% benchmark`,
+        body: `${a.name.split(' ')[0]} has <strong>${a.no_ans} unanswered dials</strong> this week. At the team's best contact rate, this would yield ~${Math.round(a.calls * (Math.max(...AGENTS.map(x=>x.contact_rate))/100) - a.contacts)} more live conversations per week.`,
+        actions: [
+          `🔄 <strong>Lead Age Audit:</strong> Sort ${a.name.split(' ')[0]}'s current queue by lead creation date. Anything over 14 days old: move to end of queue and replace with fresh supply.`,
+          `📱 <strong>SMS Re-engagement:</strong> Deploy a text sequence to no-answer leads from the past 3 days with a callback link. This alone can recover 5–10% of missed contacts.`
+        ]
+      });
+    }
+
+    // === EOD YES / SHOW RATE ===
+    const eodYesRate = a.sched > 0 ? (a.eod_yes / a.sched * 100).toFixed(0) : 0;
+    const eodRatio = a.eod_yes / (a.eod_yes + a.eod_no);
+    const projectedHiresFromEOD = Math.round(a.sched * 0.5 * 0.85); // benchmark: 50% EOD Yes → 85% show
+
+    if (a.eod_yes <= 7) {
+      plans.push({ cat: 'Show Rate', level: 'critical', icon: '📅',
+        headline: `EOD Yes critically low at ${a.eod_yes} — only ${eodYesRate}% of ${a.sched} scheduled confirmed`,
+        body: `${a.name.split(' ')[0]} is only confirming <strong>${a.eod_yes} of ${a.sched} scheduled interviews</strong> on the day-of. Compare to Bahni Khan who confirms <strong>25 of 54 (46%)</strong> and closes 22 hires. ${a.name.split(' ')[0]}'s ${a.hires} hires suggest a significant no-show problem that EOD confirmation calls would directly fix.`,
+        actions: [
+          `📅 <strong>Mandatory EOD Block (TODAY):</strong> Block 4:00–5:30pm daily, non-negotiable, for confirmation calls only. This is the single highest-ROI 90 minutes of the day.`,
+          `📝 <strong>Confirmation Script:</strong> "Hi [name], this is ${a.name.split(' ')[0]} calling to confirm your interview tomorrow at [time]. You're all set — the address is [X]. Do you have any questions?" Keep it under 60 seconds.`,
+          `📲 <strong>Add SMS Confirmation:</strong> Immediately after scheduling, send a text with interview details + a "Reply YES to confirm" prompt. This primes the candidate before the EOD call.`,
+          `🔔 <strong>Day-Before Call:</strong> In addition to EOD, call every scheduled candidate the morning before their interview. Two-touch confirmation increases show rates by 35%.`,
+          `📊 <strong>Track Show Rate Explicitly:</strong> For ${a.name.split(' ')[0]}, track scheduled → showed → hired funnel daily for 2 weeks to quantify the exact no-show rate and confirm improvement.`
+        ]
+      });
+    } else if (a.eod_yes < AVG.eod_yes * 0.85) {
+      plans.push({ cat: 'Show Rate', level: 'warning', icon: '📆',
+        headline: `EOD Yes at ${a.eod_yes} (avg: ${AVG.eod_yes.toFixed(0)}) — confirmation rate below average`,
+        body: `${a.name.split(' ')[0]} has confirmed <strong>${a.eod_yes} of ${a.sched} scheduled</strong> (${eodYesRate}%). Building a more consistent EOD confirmation routine could unlock 3–5 additional hires per week through improved show rates.`,
+        actions: [
+          `⏰ <strong>Calendar Block:</strong> Set a repeating 4:00–5:30pm "EOD Confirmations" block in calendar. Treat it like a client meeting — unmovable.`,
+          `📋 <strong>Scheduled List Management:</strong> At start of each day, print or pull up the full list of candidates scheduled for the next 2 days. EOD calls should hit everyone on day-before list.`
+        ]
+      });
+    } else if (a.eod_yes >= 22) {
+      plans.push({ cat: 'Show Rate', level: 'good', icon: '✅',
+        headline: `Strong EOD confirmation rate — ${a.eod_yes} confirmed of ${a.sched} scheduled`,
+        body: `${a.name.split(' ')[0]}'s EOD discipline is a direct contributor to their hire numbers. Confirm-to-hire rate of <strong>${(a.hires / a.eod_yes * 100).toFixed(0)}%</strong> is a key strength.`,
+        actions: [
+          `📊 <strong>Share the Playbook:</strong> Document ${a.name.split(' ')[0]}'s EOD confirmation approach — timing, script, frequency — and distribute to agents with <10 EOD Yes.`
+        ]
+      });
+    }
+
+    // === HIRES vs SCHEDULED ===
+    const closeRate = (a.hires / a.sched * 100).toFixed(0);
+    const teamCloseRate = (AVG.hires / AVG.sched * 100).toFixed(0);
+    if (a.hires < 10) {
+      plans.push({ cat: 'Hire Conversion', level: 'critical', icon: '✅',
+        headline: `Only ${a.hires} hires from ${a.sched} schedules — ${closeRate}% close rate`,
+        body: `${a.name.split(' ')[0]} has a <strong>${closeRate}% schedule-to-hire rate</strong> versus the ${teamCloseRate}% team average. This points to a downstream problem: candidates are being scheduled but not completing the hiring process — likely a show rate, qualification, or offer acceptance issue.`,
+        actions: [
+          `🔍 <strong>No-Show Analysis:</strong> Pull last 2 weeks of scheduled vs attended data for ${a.name.split(' ')[0]}. If no-show rate > 40%, the problem is confirmation (fix EOD calls). If show rate is fine, the issue is in-interview disqualification.`,
+          `🎯 <strong>Candidate Quality Screen:</strong> Review the qualification criteria ${a.name.split(' ')[0]} is using. Are the scheduled candidates actually meeting the role requirements? Tighten the phone screen criteria.`,
+          `💼 <strong>Offer Acceptance Coaching:</strong> If candidates are showing up but declining offers, introduce pre-close language in the phone screen: "Assuming the role meets your expectations, are you ready to start within 2 weeks?"`,
+          `📞 <strong>Post-No-Show Recovery:</strong> For every no-show, ${a.name.split(' ')[0]} should call within 4 hours to reschedule. 30% of no-shows reschedule and hire when contacted same-day.`
+        ]
+      });
+    } else if (a.hires >= 20) {
+      plans.push({ cat: 'Hire Conversion', level: 'good', icon: '🏆',
+        headline: `Outstanding ${a.hires} hires — ${closeRate}% close rate on ${a.sched} scheduled`,
+        body: `${a.name.split(' ')[0]}'s schedule-to-hire conversion is a <strong>top-team strength</strong>. Their ability to qualify candidates correctly and maintain show rates is producing outsized hiring outcomes.`,
+        actions: [
+          `📖 <strong>Document Qualification Criteria:</strong> What questions does ${a.name.split(' ')[0]} ask to determine a candidate is truly hire-ready? This should become the team-standard screening guide.`,
+          `🤝 <strong>Peer Pairing:</strong> Connect ${a.name.split(' ')[0]} with agents who have high schedules but low hires — their downstream process is what those agents need most.`
+        ]
+      });
+    }
+
+    // === NGF / CONTACT QUALITY ===
+    const ngfRate = (a.ngf / a.contacts * 100).toFixed(0);
+    if (a.ngf > 250) {
+      plans.push({ cat: 'Contact Quality', level: 'warning', icon: '🚫',
+        headline: `High NGF count: ${a.ngf} (${ngfRate}% of contacts)`,
+        body: `${a.name.split(' ')[0]} is dispositing <strong>${a.ngf} contacts as Not a Good Fit</strong> — the most on the team. This either reflects genuinely poor lead quality, or an overly quick disqualification trigger. Compare to Lucas Eichelberger who has only 108 NGF from similar call volume.`,
+        actions: [
+          `🔬 <strong>NGF Subcategory Breakdown:</strong> In the dialer, break down ${a.name.split(' ')[0]}'s NGF into: (1) Not Interested, (2) Wrong Person, (3) Language, (4) Not Available. Each requires a different intervention.`,
+          `📋 <strong>Script Retention Test:</strong> Record a mock call where ${a.name.split(' ')[0]} pitches to a role-playing manager. Identify if the value prop is compelling enough to prevent quick NGF hang-ups.`,
+          `🔄 <strong>Lead Source Audit:</strong> If NGF is over 50% "Not Interested" in the first 15 seconds, the lead source may be misaligned. Verify the lead source that ${a.name.split(' ')[0]} is dialing matches the role being pitched.`
+        ]
+      });
+    }
+
+    // === DUPLICATE CALLS ===
+    if (a.dupes > 15) {
+      plans.push({ cat: 'CRM Discipline', level: 'critical', icon: '🔁',
+        headline: `${a.dupes} duplicate calls — ${((a.dupes/a.calls)*100).toFixed(1)}% of all dials are wasted repeats`,
+        body: `${a.name.split(' ')[0]} has the team's highest duplicate rate. <strong>${a.dupes} calls were made to already-contacted records</strong>, burning dial capacity and risking candidate frustration. At the team's average sched/contact rate, those ${a.dupes} dials represent ~${Math.round(a.dupes * a.contact_rate/100 * a.sched_pct/100)} wasted schedule opportunities.`,
+        actions: [
+          `🔧 <strong>CRM Workflow Fix (Urgent):</strong> Audit how leads are being dispositioned and re-queued. If "already contacted" leads are cycling back, there is a dialer list configuration error.`,
+          `✅ <strong>Disposition Before Hanging Up:</strong> Make it a habit to disposition BEFORE ending the call — not after. This prevents leads from falling back into the queue.`,
+          `🚫 <strong>Enable Real-Time Dedup Alert:</strong> Ask the dialer admin to flag any lead that has been dialed more than once in the same week with a visual warning before connecting.`,
+          `📊 <strong>Weekly Dupe Report:</strong> Share a weekly "duplicate call count" in team standup. Visibility creates accountability — the goal is zero dupes.`
+        ]
+      });
+    } else if (a.dupes > 8) {
+      plans.push({ cat: 'CRM Discipline', level: 'warning', icon: '🔁',
+        headline: `${a.dupes} duplicate calls this week — above the ${AVG.dupes.toFixed(0)} average`,
+        body: `${a.name.split(' ')[0]} has <strong>${a.dupes} duplicate dials</strong>, wasting potential calling time. This likely signals a CRM disposition discipline gap.`,
+        actions: [
+          `📝 <strong>Disposition Checklist:</strong> Before moving to the next call, verify the disposition code is saved. Create a physical or digital checklist for the top of ${a.name.split(' ')[0]}'s screen.`,
+          `🔄 <strong>List Source Review:</strong> Check if any of ${a.name.split(' ')[0]}'s lead lists are overlapping. Merging leads from multiple sources without deduplication is the #1 cause of dupe calls.`
+        ]
+      });
+    }
+
+    // === FOLLOW-UP CONVERSION ===
+    const fuConvRate = a.fu > 0 ? (a.sched / (a.contacts) * 100).toFixed(1) : 0;
+    if (a.fu > 35) {
+      plans.push({ cat: 'Pipeline Flow', level: 'warning', icon: '🔄',
+        headline: `${a.fu} follow-ups pending — large warm pipeline at risk of going cold`,
+        body: `${a.name.split(' ')[0]} has <strong>${a.fu} leads tagged for follow-up</strong> — second highest on the team. F/U leads showed enough interest to not be dispositioned as NGF but haven't converted. Without a structured callback sequence, these go stale within 48–72 hours.`,
+        actions: [
+          `📞 <strong>Same-Day F/U Rule:</strong> Any F/U tagged before noon must be called back the same day. F/Us tagged after noon get called the next morning — first thing.`,
+          `📧 <strong>F/U Email Bridge:</strong> While on the F/U call, reference the previous conversation specifically: "When we spoke earlier you mentioned [X] — I wanted to follow up on that." Personalization increases F/U conversion by 25%.`,
+          `📊 <strong>F/U Conversion Tracking:</strong> Track what % of ${a.name.split(' ')[0]}'s F/Us convert to schedules week-over-week. If below 20%, the F/U script needs rework.`,
+          `⚡ <strong>F/U Priority Queue:</strong> Separate F/U calls from cold calls — work them in a dedicated 11am–12:30pm block when callbacks are most likely to answer.`
+        ]
+      });
+    }
+
+    // === WRAP TIME ===
+    if (a.wrap_hrs > 2.5) {
+      plans.push({ cat: 'Efficiency', level: 'warning', icon: '📝',
+        headline: `Wrap time at ${a.wrap_hrs.toFixed(1)}h — slowing call velocity significantly`,
+        body: `${a.name.split(' ')[0]} is spending <strong>${a.wrap_hrs.toFixed(1)} hours on after-call work</strong> (team avg: ~1.3h). Every extra hour of wrap time = ${a.sched_hr.toFixed(2)} fewer schedules. Cutting wrap in half would recover approximately <strong>${(a.sched_hr * (a.wrap_hrs - 1.0)).toFixed(1)} additional schedules</strong> per week.`,
+        actions: [
+          `⌨️ <strong>CRM Hotkeys & Templates:</strong> Set up saved disposition templates and keyboard shortcuts. Common notes (NGF, F/U time, callback reason) should be single clicks, not typed text.`,
+          `📱 <strong>One-Sentence Note Rule:</strong> CRM notes should be maximum 1 sentence. "Called back, still interested in PM shift, schedule for Tuesday" is sufficient — no need for paragraphs.`,
+          `🔄 <strong>Wrap Time Benchmark:</strong> Target ${Math.max(0.5, a.wrap_hrs * 0.55).toFixed(1)}h wrap next week. Share a before/after comparison in next 1:1.`,
+          `🖥️ <strong>Dual Screen Setup:</strong> If ${a.name.split(' ')[0]} is navigating between multiple windows for each call, a second monitor reduces per-call admin time by 20–30%.`
+        ]
+      });
+    }
+
+    // === WAIT TIME (DIALER EFFICIENCY) ===
+    if (a.wait_hrs > 9) {
+      plans.push({ cat: 'Dialer Setup', level: 'warning', icon: '⏳',
+        headline: `${a.wait_hrs.toFixed(1)}h wait/ring time — dialer configuration may be suboptimal`,
+        body: `${a.name.split(' ')[0]} is spending <strong>${a.wait_hrs.toFixed(1)} hours waiting for calls to connect</strong> — among the highest on the team. This suggests a dialer set to too many rings per attempt, or a high proportion of manual dials.`,
+        actions: [
+          `⚙️ <strong>Dialer Ring Limit:</strong> Set maximum rings per dial attempt to 4. Beyond 4 rings, the probability of answer drops below 5%. Cutting rings from 6 to 4 can save 20+ minutes daily.`,
+          `🔄 <strong>Predictive vs Preview:</strong> If ${a.name.split(' ')[0]} is on preview or manual dial mode, evaluate switching to predictive or power dial — these modes eliminate most wait time by pre-dialing while the agent wraps the previous call.`
+        ]
+      });
+    }
+
+    // === ALREADY SCHEDULED (CRM DEDUP) ===
+    if (a.already_sched > 16) {
+      plans.push({ cat: 'CRM Discipline', level: 'warning', icon: '🔄',
+        headline: `${a.already_sched} "Already Scheduled" dispositions — outreach reaching pre-booked candidates`,
+        body: `${a.name.split(' ')[0]} contacted <strong>${a.already_sched} candidates who were already scheduled</strong>. This is pure wasted effort and can damage candidate experience if they feel over-contacted. It signals CRM sync issues or overlapping team lead assignments.`,
+        actions: [
+          `🔍 <strong>Lead Assignment Overlap Check:</strong> Verify that ${a.name.split(' ')[0]}'s lead pool isn't shared with another agent. Overlapping assignments are the primary cause of Already Scheduled contacts.`,
+          `🔗 <strong>Real-Time Scheduled Sync:</strong> Ensure the dialer and scheduling system are synced in real-time. Candidates who schedule should be immediately removed from active call queues.`
+        ]
+      });
+    }
+
+    // === H/U (HANG UP) ===
+    const huRate = (a.hu / a.contacts * 100).toFixed(0);
+    if (a.hu > 150) {
+      plans.push({ cat: 'Opener Quality', level: 'warning', icon: '📵',
+        headline: `${a.hu} hang-ups (${huRate}% of live contacts) — opener may be losing candidates early`,
+        body: `${a.name.split(' ')[0]} is getting hung up on in <strong>${huRate}% of live conversations</strong>. The team average is approximately ${(AVG.hu/AVG.contacts*100).toFixed(0)}%. This strongly suggests the first 10–15 seconds of the call are not creating enough interest to hold attention.`,
+        actions: [
+          `🎙️ <strong>Opener A/B Test:</strong> Try two different openers this week. Version A: "Hi, I'm calling about a job opportunity in your area — do you have 2 minutes?" Version B: "Hi, I saw your resume and have a role that matches your background — is now a good time?" Track which produces fewer hang-ups.`,
+          `⚡ <strong>Lead with Value, Not Process:</strong> Avoid "I'm calling from [company] about our open position" — leads have heard this 100 times. Lead with a specific, tangible benefit: "We have day-1 paid training and same-week starts — does that interest you?"`,
+          `🔊 <strong>Call Recording Review:</strong> Pull 10 hang-up calls from this week and listen to exactly what was said in seconds 0–15. The hang-up trigger is almost always identifiable within that window.`
+        ]
+      });
+    }
+
+    // === CONSISTENCY / OVERALL STAR PERFORMER ===
+    const critCount = plans.filter(p=>p.level==='critical').length;
+    const warnCount = plans.filter(p=>p.level==='warning').length;
+    if (critCount === 0 && warnCount === 0) {
+      plans.push({ cat: 'Overall', level: 'good', icon: '⭐',
+        headline: `Top-tier performance across all metrics`,
+        body: `${a.name.split(' ')[0]} is firing on all cylinders. With strong scores in conversion, velocity, phone discipline, and downstream hiring, the focus should be on sustaining consistency and elevating the team around them.`,
+        actions: [
+          `📈 <strong>Set a Personal Record Target:</strong> Challenge ${a.name.split(' ')[0]} to beat their own best week on a single metric — whether that's sched%, hires, or EOD confirmations. Top performers respond to competing with themselves.`,
+          `🎓 <strong>Mentorship Role:</strong> Assign ${a.name.split(' ')[0]} as a formal peer coach for one lower-ranked agent. Teaching reinforces their own habits and creates team-wide lift.`,
+          `🏆 <strong>Public Recognition:</strong> Highlight ${a.name.split(' ')[0]}'s performance in the next team meeting. Recognition from management is the top retention driver for high performers.`
+        ]
+      });
+    }
+
+    return plans;
+  }
+
+  const sorted = [...AGENTS].sort((a,b) => b.score - a.score);
+  const el = document.getElementById('optimizerCards');
+  if (!el) return;
+
+  const levelColors = { critical: 'var(--red)', warning: 'var(--orange)', good: 'var(--green)' };
+  const levelBg = { critical: 'rgba(255,71,87,0.06)', warning: 'rgba(255,140,66,0.05)', good: 'rgba(0,229,160,0.05)' };
+  const levelBorderColor = { critical: 'rgba(255,71,87,0.3)', warning: 'rgba(255,140,66,0.25)', good: 'rgba(0,229,160,0.2)' };
+  const levelIcons = { critical: '🔴', warning: '🟡', good: '🟢' };
+  const catColors = {
+    'Conversion':'#00d4ff','Velocity':'#f5c542','Time On Phone':'#ff4757',
+    'Lead Quality':'#a78bfa','Show Rate':'#00e5a0','Hire Conversion':'#ff6b9d',
+    'Contact Quality':'#ff8c42','CRM Discipline':'#fbbf24','Pipeline Flow':'#4fc3f7',
+    'Efficiency':'#60a5fa','Dialer Setup':'#7c3aed','Opener Quality':'#f87171','Overall':'#34d399'
+  };
+
+  el.innerHTML = sorted.map((a, ri) => {
+    const ai = AGENTS.indexOf(a);
+    const rank = ri + 1;
+    const plans = analyzeAgent(a);
+
+    if (optFilter === 'critical' && !plans.some(p=>p.level==='critical')) return '';
+    if (optFilter === 'good' && plans.some(p=>p.level!=='good')) return '';
+
+    const critCount = plans.filter(p=>p.level==='critical').length;
+    const warnCount = plans.filter(p=>p.level==='warning').length;
+    const goodCount = plans.filter(p=>p.level==='good').length;
+    const totalActions = plans.reduce((s,p)=>s+p.actions.length,0);
+
+    return `
+      <div class="opt-agent-card" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;margin-bottom:20px;overflow:hidden;transition:border-color 0.2s" onmouseenter="this.style.borderColor='var(--border2)'" onmouseleave="this.style.borderColor='var(--border)'">
+
+        <!-- AGENT HEADER -->
+        <div style="padding:22px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,255,255,0.02),transparent);border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleOptCard(this)">
+          <div class="avatar" style="background:${avatarBg(ai)};color:white;width:50px;height:50px;font-size:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">${a.initials}</div>
+          <div style="flex:1;min-width:180px">
+            <div style="font-family:Syne,sans-serif;font-size:17px;font-weight:800;color:var(--text)">#${rank} ${a.name}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px">Score: ${a.score} &nbsp;·&nbsp; ${a.sched_pct.toFixed(2)}% sched% &nbsp;·&nbsp; ${a.sched_hr.toFixed(2)}/hr &nbsp;·&nbsp; ${a.hires} hires &nbsp;·&nbsp; ${totalActions} action items</div>
+          </div>
+          <!-- MINI STAT PILLS -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            ${critCount ? `<span class="tag tag-low">🔴 ${critCount} critical</span>` : ''}
+            ${warnCount ? `<span class="tag tag-watch">🟡 ${warnCount} warning${warnCount>1?'s':''}</span>` : ''}
+            ${goodCount && !critCount && !warnCount ? `<span class="tag tag-good">🟢 On Track</span>` : goodCount ? `<span class="tag tag-good">🟢 ${goodCount} strength${goodCount>1?'s':''}</span>` : ''}
+            <span style="font-size:18px;color:var(--text3);transition:transform 0.3s" class="chevron">▾</span>
+          </div>
+        </div>
+
+        <!-- CATEGORIES QUICK-SCAN ROW -->
+        <div style="padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg3)">
+          ${plans.map(p=>`
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:${catColors[p.cat]||'#888'}18;color:${catColors[p.cat]||'#888'};border:1px solid ${catColors[p.cat]||'#888'}33">
+              ${levelIcons[p.level]} ${p.cat}
+            </span>
+          `).join('')}
+        </div>
+
+        <!-- EXPANDABLE PLAN DETAILS -->
+        <div class="opt-details" style="padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+          ${plans.map((p, pi) => `
+            <div style="border:1px solid ${levelBorderColor[p.level]};background:${levelBg[p.level]};border-radius:14px;overflow:hidden">
+
+              <!-- PLAN HEADER -->
+              <div style="padding:14px 18px;display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid ${levelBorderColor[p.level]}">
+                <div style="flex-shrink:0;font-size:18px;margin-top:1px">${p.icon}</div>
+                <div style="flex:1">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
+                    <span style="font-family:DM Mono,monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:${catColors[p.cat]||'#888'};background:${catColors[p.cat]||'#888'}15;padding:3px 8px;border-radius:100px">${p.cat}</span>
+                    <span style="font-family:DM Mono,monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:${levelColors[p.level]}">${p.level.toUpperCase()}</span>
+                  </div>
+                  <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:var(--text);line-height:1.4">${p.headline}</div>
+                </div>
+              </div>
+
+              <!-- CONTEXT -->
+              <div style="padding:12px 18px 0;font-size:13px;color:var(--text2);line-height:1.7">${p.body}</div>
+
+              <!-- ACTION ITEMS -->
+              <div style="padding:12px 18px 16px">
+                <div style="font-family:DM Mono,monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px">Action Items (${p.actions.length})</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  ${p.actions.map((act, ai2) => `
+                    <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 14px;background:rgba(0,0,0,0.25);border-radius:10px;border:1px solid rgba(255,255,255,0.05)">
+                      <div style="font-family:Syne,sans-serif;font-size:11px;font-weight:800;color:${levelColors[p.level]};min-width:22px;line-height:1.8;flex-shrink:0">${String(ai2+1).padStart(2,'0')}</div>
+                      <div style="font-size:13px;color:var(--text2);line-height:1.65">${act}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Collapse all by default, expand on click
+  document.querySelectorAll('.opt-agent-card').forEach(card => {
+    const details = card.querySelector('.opt-details');
+    if (details) details.style.display = 'none';
+  });
+}
+
+function toggleOptCard(header) {
+  const card = header.closest('.opt-agent-card');
+  const details = card.querySelector('.opt-details');
+  const chevron = header.querySelector('.chevron');
+  const isOpen = details.style.display !== 'none';
+  details.style.display = isOpen ? 'none' : 'flex';
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+// ============================================================
+// GLOSSARY
+// ============================================================
+function buildGlossary() {
+  const terms = [
+    { term: 'Schedule %', abbr: 'SCHED%', def: 'Percentage of contacts that result in a scheduled interview. Your single most important conversion metric.', formula: 'Scheduled ÷ Contacts × 100', tip: 'Target: above 12%. Elite: above 16%. Below 8% needs immediate script review.' },
+    { term: 'Sched/Hour', abbr: 'S/HR', def: 'How many schedules are produced per hour worked. Combines speed and conversion into one velocity number.', formula: 'Scheduled ÷ Non-Pause Hours', tip: 'Target: above 1.5/hr. Below 1.0 suggests either low contact rate or low conversion. Above 1.8 is elite.' },
+    { term: 'Contact Rate', abbr: 'CR%', def: 'Percentage of dial attempts that result in a live conversation. Driven by list quality, call timing, and caller ID reputation.', formula: 'Contacts ÷ Total Calls × 100', tip: 'Below 50% = stale leads or spam flagging. Target: 60%+. Top performers reach 65%+.' },
+    { term: 'NGF', abbr: 'NGF', def: 'Not a Good Fit. Contacts who were disqualified due to lack of interest, wrong position type, language barriers, or other disqualifying factors.', formula: 'Count of NGF dispositions', tip: 'Track subcategories. High NGF on fresh leads = script issue. High NGF on aged leads = list quality issue.' },
+    { term: 'H/U', abbr: 'H/U', def: 'Hung Up or Unavailable. Contacts that ended without a productive conversation outcome — lead disconnected, not available, call dropped.', formula: 'Count of H/U dispositions', tip: 'High H/U can indicate an aggressive or rushed opener. First 10 seconds are critical — get to value fast.' },
+    { term: 'No Answer', abbr: 'NA', def: 'Dials where no one answered — includes voicemail, unanswered, and disconnected numbers.', formula: 'Count of unanswered dials', tip: 'Above 40% of calls = stale list. Target: under 35%. Use time-of-day strategy and multi-touch sequences.' },
+    { term: 'F/U', abbr: 'F/U', def: 'Follow-Up dispositions — contacts who need to be called back at a future time. Too many F/Us can clog your pipeline if not converted.', formula: 'Count of follow-up dispositions', tip: 'F/Us should be tracked and recycled. Agents with many F/Us but few schedules aren\'t closing on callback — script the return call.' },
+    { term: 'Already Scheduled', abbr: 'A/S', def: 'Contacts who report they are already scheduled for an interview. Can indicate duplicate outreach from your own team or competitor overlap.', formula: 'Count of already-scheduled dispositions', tip: 'High Already Scheduled = CRM dedup failure. Cross-check with scheduled list daily to avoid wasting dials.' },
+    { term: 'EOD Yes', abbr: 'EOD+', def: 'End-of-Day confirmations where the candidate confirmed they are still attending their scheduled interview.', formula: 'Count of confirmed day-of callbacks (yes)', tip: 'This is your show-rate predictor. Build a 4-5:30pm EOD call block every day. Correlates directly to hires.' },
+    { term: 'EOD No', abbr: 'EOD-', def: 'End-of-Day calls where the candidate cancelled or said they could not make their scheduled interview.', formula: 'Count of cancelled day-of callbacks', tip: 'High EOD No vs EOD Yes ratio means low show rate. Analyze cancellation reasons and address in phone screen.' },
+    { term: 'Duplicate', abbr: 'DUPE', def: 'Calls made to the same candidate record that was already contacted or dispositioned. Pure waste — costs time, annoys candidates, raises compliance risk.', formula: 'Count of calls to already-dispositioned records', tip: 'Enable real-time CRM dedup. Over 10 dupes/week needs immediate workflow audit.' },
+    { term: 'Pause Time', abbr: 'PAUSE', def: 'Time logged into the phone system but not actively on a call or processing. Includes breaks, bio, administrative tasks, and idle time.', formula: 'Total login time − (talk + wait + wrap)', tip: 'Under 3h/day is optimal. Over 5h is a red flag. Use structured break schedules and predictive dialers to minimize gaps.' },
+    { term: 'Talk Time', abbr: 'TALK', def: 'Total time spent in active live conversations with candidates. High talk time with low results indicates inefficient conversations.', formula: 'Sum of all call durations where contact was made', tip: 'Optimal individual call length: 5-8 minutes for initial screen. Calls over 12 min rarely improve schedule rates.' },
+    { term: 'Wait Time', abbr: 'WAIT', def: 'Time spent waiting for a call to be answered or connected — includes dialing time, ring time, and transfer holds.', formula: 'Total ring + dial time across all call attempts', tip: 'High wait time with high No Answer = dialing inefficiency. Predictive dialers reduce wait by connecting agents to live calls.' },
+    { term: 'Wrap Time', abbr: 'WRAP', def: 'After-call work time — time spent updating the CRM, entering disposition codes, and preparing for the next call after hanging up.', formula: 'Total post-call processing time', tip: 'Target under 1.5h/day. Use CRM shortcuts, disposition templates, and quick-notes to reduce per-call wrap time.' },
+    { term: 'Overall Score', abbr: 'OVR', def: 'A composite score weighting Sched%, Sched/Hr, Hires, Contact Rate, and EOD Yes into a single performance index.', formula: '(Sched% × 3.5) + (Sched/Hr × 15) + (Hires/Avg × 20) + (CR × 0.3) + (EOD/Avg × 5)', tip: 'Use for quick ranking and coaching prioritization. Dig into individual metrics for root cause analysis.' },
+  ];
+
+  const el = document.getElementById('glossaryGrid');
+  if (!el) return;
+  el.innerHTML = terms.map(t => `
+    <div class="glossary-card">
+      <div class="glossary-term">
+        ${t.term}
+        <span class="glossary-abbr">${t.abbr}</span>
+      </div>
+      <div class="glossary-def">${t.def}</div>
+      <div class="glossary-formula">${t.formula}</div>
+      <div class="glossary-tip">💡 ${t.tip}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  buildOverviewCharts();
+  window.addEventListener('resize', () => {
+    if (document.getElementById('page-overview').classList.contains('active')) {
+      buildOverviewCharts();
+    }
+  });
+});
+</script>
+</body>
+</html>
